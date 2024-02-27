@@ -34,7 +34,9 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
+    , monomer
   default-language: Haskell2010
 
 executable DSL-CA-exe
@@ -46,9 +48,15 @@ executable DSL-CA-exe
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-tools:
+      happy
+  build-tool-depends:
+      sdl2:sdl2
   build-depends:
       DSL-CA
+    , array
     , base >=4.7 && <5
+    , monomer
   default-language: Haskell2010
 
 test-suite DSL-CA-test
@@ -63,5 +71,7 @@ test-suite DSL-CA-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       DSL-CA
+    , array
     , base >=4.7 && <5
+    , monomer
   default-language: Haskell2010
