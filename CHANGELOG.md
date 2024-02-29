@@ -1,4 +1,4 @@
-# Changelog for `DSL-CA`
+# Changelog for `CA-DSL`
 
 All notable changes to this project will be documented in this file.
 

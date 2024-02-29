@@ -1,6 +1,6 @@
-name:                DSL-CA
+name:                CA-DSL
 version:             0.1.0.0
-github:              "githubuser/DSL-CA"
+github:              "githubuser/CA-DSL"
 license:             BSD-3-Clause
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -17,29 +17,43 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/DSL-CA#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/CA-DSL#readme>
 
 dependencies:
 - base >= 4.7 && < 5
-- monomer
-- array
+- threepenny-gui
+# - parsec
+# - pretty
+# - containers
+# - QuickCheck
+# - mtl
+# - strict
+# - directory
 
-ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
+# default-extensions:
+# - GADTs
+# - StandaloneDeriving
+# - PatternSynonyms
+# - FlexibleInstances
+# - TupleSections
+# - MultiWayIf
+
+#ghc-options:
+# - -Wall
+# - -Wcompat
+# - -Widentities
+# - -Wincomplete-record-updates
+# - -Wincomplete-uni-patterns
+# - -Wmissing-export-lists
+# - -Wmissing-home-modules
+# - -Wpartial-fields
+# - -Wredundant-constraints
 
 library:
   source-dirs: src
 
 executables:
-  DSL-CA-exe:
+  CA-DSL-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -47,13 +61,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - DSL-CA
-    build-tools:
-    - happy
-    - sdl2
+    - CA-DSL
 
 tests:
-  DSL-CA-test:
+  CA-DSL-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -61,4 +72,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - DSL-CA
+    - CA-DSL
