@@ -1,7 +1,8 @@
 
 /* Page display */
 .header { grid-area: header; }
-.menu { grid-area: menu; }
+.menu { grid-area: menu;
+        display:inline }
 .main { grid-area: main; }
 .right { grid-area: right; }
 .footer { grid-area: footer; }
@@ -26,9 +27,20 @@ font-size: 30px;
 
 /* CA Canvas */
 
-.canvas{
+.canvas-container{
     border: 1px solid black;
     background: rgb(200, 200, 200);
+    position: relative;
+    /* margin: 20px; */
+    draggable: false
+}
+
+.canvas{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .grid {

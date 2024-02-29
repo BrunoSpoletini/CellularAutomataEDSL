@@ -11,16 +11,19 @@ import           Graphics.UI.Threepenny.Canvas as Canvas
 import           Graphics.UI.Threepenny.Core
 --import Distribution.Compat.Prelude
 
-cellSize = 25 
-canvasSize = 700 
-padding = 10  --padding
+cellSize = 25 :: Double
+canvasSize = 700 :: Double
+
 
 startCA :: IO ()
 startCA = startGUI defaultConfig { jsStatic = Just "." } setup
 
 drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
-drawSquare canvas x y size colour = do  canvas # set' UI.fillStyle (UI.htmlColor colour)
-                                        canvas # UI.fillRect (x,y) size size
+drawSquare canvas x y size colour = 
+    let newX =  fromIntegral(floor(x/cellSize)) * cellSize + 1
+        newY =  fromIntegral(floor(y/cellSize)) * cellSize + 1
+    in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
+            canvas # UI.fillRect (newX,newY) (size-2) (size-2)
 
 
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
@@ -32,19 +35,7 @@ setup window = do
     UI.addStyleSheet window "grid.css"
     return  window # set UI.title "Cellular Automata"
 
-
-    -- Canvas --
-    canvas <- UI.canvas #. "canvas"
-        # set UI.height canvasSize
-        # set UI.width  canvasSize
-
-    -- Draw grid
-    forM_ [0,cellSize..canvasSize] $ \x -> do
-        UI.moveTo (fromIntegralPoint (x + padding + 1, padding)) canvas
-        UI.lineTo (fromIntegralPoint (x + padding + 1, canvasSize + padding)) canvas
-        
-        UI.moveTo (fromIntegralPoint (padding, x + padding + 1)) canvas
-        UI.lineTo (fromIntegralPoint (canvasSize + padding, x + padding + 1)) canvas
+    (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
 
     -- Buttons
     clear     <- UI.button #+ [string "Clear"]
@@ -57,7 +48,7 @@ setup window = do
     -- Mouse
     out  <- UI.span # set text "Coordinates: "
     wrap <- UI.div #. "wrap"
-        # set style [("width","300px"),("height","300px"),("border","solid black 1px")]
+        # set style [("width","300px"),("height","100px"),("border","solid black 1px")]
         # set (attr "tabindex") "1" -- allow key presses
         #+ [element out]
 
@@ -65,7 +56,7 @@ setup window = do
     on UI.mousemove canvas $ \xy ->
         element out # set text ("Coordinates: " ++ show xy)
     on UI.mousedown canvas $ \(x, y) ->
-        drawSquare canvas x y 25 "Red"
+        drawSquare canvas x y cellSize "Red"
 
     getBody window #+ 
         [
@@ -77,7 +68,7 @@ setup window = do
                         [element clear, 
                         element drawRects],
                     UI.div #. "main"#+
-                        [element canvas],
+                        [element canvasContainer],
                     UI.div #. "right",
                     UI.div #. "footer"
 
@@ -96,3 +87,33 @@ setup window = do
 
     return()
          
+
+-- Draw the whole canvas
+drawCanvas :: Int -> Int -> UI (Element, Element)
+drawCanvas cellSize canvasSize = do
+     -- Static Canvas --
+    canvasBase <- UI.canvas #. "canvas"
+        # set UI.height canvasSize
+        # set UI.width  canvasSize
+        # set UI.strokeStyle "black"
+
+    -- Draw grid on Static Canvas
+    forM_ [0,cellSize..canvasSize] $ \x -> do
+        UI.moveTo (fromIntegralPoint (x, 0)) canvasBase
+        UI.lineTo (fromIntegralPoint (x, canvasSize)) canvasBase
+        
+        UI.moveTo (fromIntegralPoint (0, x)) canvasBase
+        UI.lineTo (fromIntegralPoint (canvasSize, x)) canvasBase
+        UI.stroke canvasBase
+
+    -- Volatile Canvas
+    canvas <- UI.canvas #. "canvas"
+        # set UI.height canvasSize
+        # set UI.width  canvasSize
+
+    -- Canvas container
+    canvasContainer <- UI.div #. "canvas-container"
+        # set style [("height", show canvasSize ++ "px"), ("width", show canvasSize ++ "px")]
+        # set UI.draggable False
+        #+ [element canvasBase, element canvas]
+    return (canvasContainer, canvas)
