@@ -12,7 +12,7 @@ import           Graphics.UI.Threepenny.Core
 --import Distribution.Compat.Prelude
 
 cellSize = 25 :: Double
-canvasSize = 700 :: Double
+canvasSize = 500 :: Double
 
 
 startCA :: IO ()
@@ -39,7 +39,7 @@ setup window = do
 
     -- Buttons
     clear     <- UI.button #+ [string "Clear"]
-    drawRects <- UI.button #+ [string "Add some rectangles."]
+    test     <- UI.button #+ [string "Test"]
 
     -- Button Actions
     on UI.click clear $ const $
@@ -55,8 +55,14 @@ setup window = do
     -- Mouse detection
     on UI.mousemove canvas $ \xy ->
         element out # set text ("Coordinates: " ++ show xy)
-    on UI.mousedown canvas $ \(x, y) ->
+    on UI.mousedown canvas $ \(x, y) -> do
         drawSquare canvas x y cellSize "Red"
+        -- --TEST VELOCIDAD
+        -- forM_ [0,cellSize..canvasSize] $ \x -> do
+        --     forM_ [0,cellSize..canvasSize] $ \y -> do
+        --         drawSquare canvas x y cellSize "blue"
+
+
 
     getBody window #+ 
         [
@@ -65,25 +71,17 @@ setup window = do
                     UI.div #. "header"#+
                         [element wrap],
                     UI.div #. "menu"#+
-                        [element clear, 
-                        element drawRects],
+                        --[
+                            --UI.div #. "row"#+
+                                [element clear, element test],
+                        --],
                     UI.div #. "main"#+
                         [element canvasContainer],
                     UI.div #. "right",
                     UI.div #. "footer"
-
                 ]
         ]
     
-    -- draw some rectangles
-    on UI.click drawRects $ const $ do
-        let rects = [ (20 , 130, 15, 120, "teal")
-                    , (345, 110, 15, 90, "lightblue")
-                    , (220, 360, 95, 15, "teal")
-                    ]
-        forM_ rects $ \(x,y,w,h,color) -> do
-            canvas # set' UI.fillStyle (UI.htmlColor color)
-            canvas # UI.fillRect (x,y) w h
 
     return()
          
