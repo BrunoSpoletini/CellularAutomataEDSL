@@ -24,9 +24,10 @@ module Common where
 
     type Pos = (Int, Int)
 
-    data Action = UpdateCell Pos CellId 
+    data Comm = UpdateCell Pos Variable 
                 | Step 
                 | CheckN Pos 
+                -- | Def CellName (Colour Double) [Int] [Int]
 
     -- CheckN deberia ir ahi?
 
