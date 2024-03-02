@@ -1,18 +1,18 @@
 module Common where
     import Data.Colour 
-    import Data.Map.Strict as M
+    --import Data.Map.Strict as M
+    import qualified Data.Vector as V
 
+    -- -- Comandos interactivos o de archivos
+    -- data Stmt e =  Def e
+    --              | Eval e
+    --     deriving (Show)
 
-    -- Comandos interactivos o de archivos
-    data Stmt e =  Def e
-                 | Eval e
-        deriving (Show)
+    -- instance Functor Stmt where
+    --     fmap f (Def p v) = Def s (f i)
+    --     fmap f (Eval i)  = Eval (f i)
 
-    instance Functor Stmt where
-        fmap f (UpdateCell p v) = Def s (f i)
-        fmap f (Eval i)  = Eval (f i)
-
-    data Cell = M.Map CellId CellData
+    --data Cell = (CellId, CellData)
 
     type CellId = Int
 
@@ -26,7 +26,7 @@ module Common where
 
     data GridData = GridData {  height :: Int,
                                 width :: Int,
-                                grid :: [[ (CellId, CellId) ]],
+                                grid :: Vector ( Vector (CellId, CellId)),
                                 upLimit :: Int,
                                 loLimit :: Int,
                                 leLimit :: Int,
@@ -41,3 +41,5 @@ module Common where
 
     data Error = UndefVar 
         deriving (Eq, Show)
+
+    data Env = (GridData, [CellData])

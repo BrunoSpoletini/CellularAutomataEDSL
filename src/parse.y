@@ -6,7 +6,7 @@
 
 %monad { P } { thenP } { returnP }
 %name command Com
-%name commands Coms
+--%name commands Coms
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
@@ -119,6 +119,9 @@ Position    : '(' INT ',' INT ')'   { Pair $2 $4 }
                             ("CHECK", rest) -> cont TCheck rest
                             ("UPDATE", rest) -> cont TUpdate rest
                             (var, rest)   -> cont (NVar var) rest
+
+    --coms_parse s = Coms s 1
+    com_parse s = Com s 1
 
 }
 
