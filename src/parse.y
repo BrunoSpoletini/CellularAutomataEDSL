@@ -4,7 +4,7 @@
 }
 
 
---%monad { P } { thenP } { returnP }
+%monad { P } { thenP } { returnP }
 %name command Com
 %name commands Coms
 
@@ -24,28 +24,27 @@
 -- Limpiar tokens sin uso
 %token
     '='     { TEquals }
-    '.'     { TDot }
     '('     { TOpen }
     ')'     { TClose }
     ','     { TComa }
     NVAR    { NVar $$ }
-    CVAR    { TColour $$}
+    --CVAR    { TColour $$}
     DEF     { TDef }
     INT     { TInt $$ }
-
+    STEP    { TStep }
+    CHECK   { TCheck }
+    UPDATE  { TUpdate }
 
 Com         : DefCell               { $1 }
-            | UpdateC               { $1 }
-            | CheckN Position       { CheckN $2 } 
-            | Step                  { Step }
+            | UPDATE Position NVAR  { UpdateCell $2 $3 }
+            | CHECK Position        { CheckN $2 } 
+            | STEP                  { Step }
 
-DefCell     : DEF NVAR '=' '(' CVAR ',' NList ',' NList ')' { DefCell $1  }
+DefCell     : DEF NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { Def $2 $5 $8 $12  }
 
-NList       : '[' INT NList             { $2 : $3 }
-            | ',' NLIst ']'             { $2 }
-            | ']'                      {[]}
-
-UpdateC     : Position NVAR          { UpdateCell $1 $2}
+NList       : INT NList             { $1 : $2 }
+            | ',' NLIst             { $2 }
+            |                       {[]}
 
 Position    : '(' INT ',' INT ')'   { Pair $2 $4 }
 
@@ -85,37 +84,56 @@ Position    : '(' INT ',' INT ')'   { Pair $2 $4 }
 
     data Token = 
           TEquals
-        | TDot
         | TOpen
         | TClose
         | TComa
-        | TVar String
-        | TColour Double
+        | NVar String
         | TDef
         | TInt Int
+        | TStep
+        | TCheck
+        | TUpdate
+        | TEOF
 
+    ---
 
-    lexer :: String -> [Token]
-    lexer [] = []
-    lexer (c:cs)
-        | isSpace c = lexer cs
-        | isAlpha c = lexVar (c:cs)
-        | isDigit c = lexNum (c:cs)
-    lexer ('=':cs) = TokenEq : lexer cs
-    lexer ('+':cs) = TokenPlus : lexer cs
-    lexer ('-':cs) = TokenMinus : lexer cs
-    lexer ('*':cs) = TokenTimes : lexer cs
-    lexer ('/':cs) = TokenDiv : lexer cs
-    lexer ('(':cs) = TokenOB : lexer cs
-    lexer (')':cs) = TokenCB : lexer cs
+    lexer cont s = case s of
+                    [] -> cont TEOF []
+                    ('\n':s) -> \line -> lexer cont s (line + 1)
+                    (c:cs)
+                        | isSpace c = lexer cont cs
+                        | isAlpha c = lexVar (c:cs)
+                        | isDigit c = lexNum (c:cs)
+                    lexer ('=':cs) = cont TEquals cs
+                    lexer ('(':cs) = cont TOpen cs
+                    lexer (')':cs) = cont TClose cs
+                    lexer (',':cs) = cont TComa cs
 
-    lexNum cs = TInt (read num) : lexer rest
-        where (num,rest) = span isDigit cs
+                    lexNum cs = cont (TInt (read num)) rest
+                        where (num,rest) = span isDigit cs
 
-    lexVar cs =
-    case span isAlpha cs of
-        ("def",rest) -> TVar : lexer rest
-        --("in",rest)  -> TokenIn : lexer rest
-        (var,rest)   -> TokenVar var : lexer rest
+                    lexVar cs =
+                        case span isAlpha cs of
+                            ("DEF", rest) -> cont TDef rest
+                            ("STEP", rest) -> cont TStep rest
+                            ("CHECK", rest) -> cont TCheck rest
+                            ("UPDATE", rest) -> cont TUpdate rest
+                            (var, rest)   -> cont (NVar var) rest
 
-    }
+}
+
+    -- Gramatica
+    -- comm := 'DEF' var '=' '(' var ',' '[' numList ']' ',' '[' numList ']' ')' 
+    --       | 'UPDATE' pos var
+    --       | 'CHECK' pos
+    --       | 'STEP' 
+
+    -- var := letter | letter var
+
+    -- num := digit | digit num
+
+    -- numList :=  num | num numList
+
+    -- letter := 'a'|'b'|...|'z'
+    
+    -- digit := '0'|'1'|...|'9'

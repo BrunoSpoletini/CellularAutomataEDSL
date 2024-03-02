@@ -24,6 +24,7 @@ dependencies:
 - threepenny-gui
 - colour
 - containers
+#- text quiza sirve <-
 # - parsec
 # - pretty
 # - containers
