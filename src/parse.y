@@ -6,10 +6,11 @@
 
 --%monad { P } { thenP } { returnP }
 %name command Com
+%name commands Coms
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
-
+%error { parseError }
 
 -- %right VAR
 -- %left '=' 
@@ -23,76 +24,98 @@
 -- Limpiar tokens sin uso
 %token
     '='     { TEquals }
-    ':'     { TColon }
-    '\\'    { TAbs }
     '.'     { TDot }
     '('     { TOpen }
     ')'     { TClose }
-    '->'    { TArrow }
     ','     { TComa }
-    VAR     { TVar $$ }
+    NVAR    { NVar $$ }
     CVAR    { TColour $$}
-    TYPEE   { TTypeE }
     DEF     { TDef }
-    LET     { TLet }
-    IN      { TIn }
-    UNIT    { TUnitT }
-    UNITV   { TUnit }
-    FST     { TFst }
-    SND     { TSnd }
-    ZERO    { TZero }
-    SUC     { TSuc }
-    NAT     { TNat }
-    REC     { TRec }
+    INT     { TInt $$ }
 
 
 Com         : DefCell               { $1 }
             | UpdateC               { $1 }
-            | CheckN                { CheckN $1 } 
+            | CheckN Position       { CheckN $2 } 
             | Step                  { Step }
-DefCell     : VAR '=' '(' CVAR ',' '[' NList ']' ',' '[' NList ']' ')' {}
-NList       : NAT NList             { $1 : $2 }
-            | ',' NLIst             { $2 }
-            |                       {[]}
-UpdateC     : Position VAR          { UpdateCell $1 $2}
-Position    : '(' NAT ',' NAT ')'   { Pair $2 $4 }
-CheckN      : Position              { $1 }
-Coms        : Com Coms              { $1 : $2 }
-            |                       { [] }
 
+DefCell     : DEF NVAR '=' '(' CVAR ',' NList ',' NList ')' { DefCell $1  }
 
-Def     :  Defexp                      { $1 }
-        |  Exp	                       { Eval $1 }
-Defexp  : DEF VAR '=' Exp              { Def $2 $4 } 
+NList       : '[' INT NList             { $2 : $3 }
+            | ',' NLIst ']'             { $2 }
+            | ']'                      {[]}
 
-Exp     :: { LamTerm }
-        : '\\' VAR ':' Type '.' Exp    { LAbs $2 $4 $6 }
-        | LET VAR '=' Exp IN Exp       { LLet $2 $4 $6 }
-        | NAbs                         { $1 }
-        | FST Exp                      { LFst $2 }
-        | SND Exp                      { LSnd $2 }
-        | '(' Exp ',' Exp ')'          { LPair $2 $4 }
-        | SUC Exp                      { LSuc $2 }
-        | REC Atom Atom Exp            { LRec $2 $3 $4 }
+UpdateC     : Position NVAR          { UpdateCell $1 $2}
 
-NAbs    :: { LamTerm }
-        : NAbs Atom                    { LApp $1 $2 }
-        | Atom                         { $1 }
+Position    : '(' INT ',' INT ')'   { Pair $2 $4 }
 
-Atom    :: { LamTerm }
-        : VAR                          { LVar $1 }  
-        | '(' Exp ')'                  { $2 }
-        | UNITV                        { LUnit }
-        | ZERO                         {LZero}  
+--Coms        : Com Coms              { $1 : $2 }
+--            |                       { [] }
 
-Type    : TYPEE                        { EmptyT }
-        | Type '->' Type               { FunT $1 $3 }
-        | '(' Type ')'                 { $2 }
-        | UNIT                         { UnitT}
-        | '(' Type ',' Type ')'        { PairT $2 $4 }
-        | NAT                          { NatT }
-
-Defs    : Defexp Defs                  { $1 : $2 }
-        |                              { [] }
-     
 {
+    parseError :: [Token] -> a 
+    parseError _ = error "Parse error"
+        
+    data ParseResult a = Ok a | Failed String
+                    deriving Show                     
+    type LineNumber = Int
+    type P a = String -> LineNumber -> ParseResult a
+
+    getLineNo :: P LineNumber
+    getLineNo = \s l -> Ok l
+
+    thenP :: P a -> (a -> P b) -> P b
+    m `thenP` k = \s l-> case m s l of
+                            Ok a     -> k a s l
+                            Failed e -> Failed e
+                            
+    returnP :: a -> P a
+    returnP a = \s l-> Ok a
+
+    failP :: String -> P a
+    failP err = \s l -> Failed err
+
+    catchP :: P a -> (String -> P a) -> P a
+    catchP m k = \s l -> case m s l of
+                            Ok a     -> Ok a
+                            Failed e -> k e s l
+
+    happyError :: P a
+    happyError = \ s i -> Failed $ "Línea "++(show (i::LineNumber))++": Error de parseo\n"++(s)
+
+    data Token = 
+          TEquals
+        | TDot
+        | TOpen
+        | TClose
+        | TComa
+        | TVar String
+        | TColour Double
+        | TDef
+        | TInt Int
+
+
+    lexer :: String -> [Token]
+    lexer [] = []
+    lexer (c:cs)
+        | isSpace c = lexer cs
+        | isAlpha c = lexVar (c:cs)
+        | isDigit c = lexNum (c:cs)
+    lexer ('=':cs) = TokenEq : lexer cs
+    lexer ('+':cs) = TokenPlus : lexer cs
+    lexer ('-':cs) = TokenMinus : lexer cs
+    lexer ('*':cs) = TokenTimes : lexer cs
+    lexer ('/':cs) = TokenDiv : lexer cs
+    lexer ('(':cs) = TokenOB : lexer cs
+    lexer (')':cs) = TokenCB : lexer cs
+
+    lexNum cs = TInt (read num) : lexer rest
+        where (num,rest) = span isDigit cs
+
+    lexVar cs =
+    case span isAlpha cs of
+        ("def",rest) -> TVar : lexer rest
+        --("in",rest)  -> TokenIn : lexer rest
+        (var,rest)   -> TokenVar var : lexer rest
+
+    }

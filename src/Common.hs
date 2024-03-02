@@ -2,6 +2,20 @@ module Common where
     import Data.Colour 
     import Data.Map.Strict as M
 
+
+
+
+    -- Comandos interactivos o de archivos
+    data Stmt i =   UpdateCell Pos Variable
+                    | Step 
+                    | CheckN Pos 
+                    | Def CellName (Colour Double) [Int] [Int]
+        deriving (Show)
+  
+    instance Functor Stmt where
+        fmap f (UpdateCell p v) = Def s (f i)
+        fmap f (Eval i)  = Eval (f i)
+
     data Cell = M.Map CellId CellData
 
     type CellId = Int
@@ -27,7 +41,7 @@ module Common where
     data Comm = UpdateCell Pos Variable 
                 | Step 
                 | CheckN Pos 
-                -- | Def CellName (Colour Double) [Int] [Int]
+                | Def CellName (Colour Double) [Int] [Int]
 
     -- CheckN deberia ir ahi?
 
