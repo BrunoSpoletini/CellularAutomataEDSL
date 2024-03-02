@@ -90,7 +90,7 @@ setup window = do
 drawCanvas :: Int -> Int -> UI (Element, Element)
 drawCanvas cellSize canvasSize = do
      -- Static Canvas --
-    canvasBase <- UI.canvas #. "canvas"
+    canvasBase <- UI.canvas #. "static-canvas"
         # set UI.height canvasSize
         # set UI.width  canvasSize
         # set UI.strokeStyle "black"
@@ -111,7 +111,7 @@ drawCanvas cellSize canvasSize = do
 
     -- Canvas container
     canvasContainer <- UI.div #. "canvas-container"
-        # set style [("height", show canvasSize ++ "px"), ("width", show canvasSize ++ "px")]
+        # set style [("height", show (canvasSize+1) ++ "px"), ("width", show (canvasSize+1) ++ "px")]
         # set UI.draggable False
-        #+ [element canvasBase, element canvas]
+        #+ [element canvas, element canvasBase]
     return (canvasContainer, canvas)

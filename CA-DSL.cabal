@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Common
       Lib
   other-modules:
       Paths_CA_DSL
@@ -34,6 +35,8 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , colour
+    , containers
     , threepenny-gui
   default-language: Haskell2010
 
@@ -49,6 +52,8 @@ executable CA-DSL-exe
   build-depends:
       CA-DSL
     , base >=4.7 && <5
+    , colour
+    , containers
     , threepenny-gui
   default-language: Haskell2010
 
@@ -65,5 +70,7 @@ test-suite CA-DSL-test
   build-depends:
       CA-DSL
     , base >=4.7 && <5
+    , colour
+    , containers
     , threepenny-gui
   default-language: Haskell2010

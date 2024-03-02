@@ -28,10 +28,19 @@ font-size: 30px;
 /* CA Canvas */
 
 .canvas-container{
-    /* border: 1px solid black; */
+    border: 1px solid black;
     background: rgb(200, 200, 200);
     position: relative;
     /* margin: 20px; */
+}
+
+.static-canvas{
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .canvas{
