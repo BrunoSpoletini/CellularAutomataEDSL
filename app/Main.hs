@@ -1,24 +1,22 @@
--- module Main (main) where
+module Main (main) where
 
--- import Front
--- import Parse
-
--- --main :: IO ()
--- --main = startCA
-
--- data State = S
---   { inter :: Bool
---   ,       -- True, si estamos en modo interactivo.
---     lfile :: String
---   ,     -- Ultimo archivo cargado (para hacer "reload")
---     ve    :: NameEnv Value Type  -- Entorno con variables globales y su valor  [(Name, (Value, Type))]
---   }
-
-
-
+import Front
+import Parse
+import Common
 -- main :: IO ()
--- main = getContents >>= print . com . lexer
+-- main = startCA
 
+
+
+
+
+--main :: IO ()
+main =   case stmts_parse "STEP\n" of
+            Ok r -> print r
+            Failed s -> print s
+--putStrLn (render (printEnv env))
+--stmt_parse "Step"
+{-
 
 module Main where
 
@@ -271,3 +269,5 @@ prelude = "Ejemplos/Prelude.lam"
 
 it :: String
 it = "it"
+
+-}

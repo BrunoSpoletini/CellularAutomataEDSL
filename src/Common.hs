@@ -3,13 +3,13 @@ module Common where
     --import Data.Map.Strict as M
     import qualified Data.Vector as V
 
-    -- -- Comandos interactivos o de archivos
-    -- data Stmt e =  Def e
+    -- Comandos interactivos o de archivos
+    data Stmt e =  Com e
+         deriving (Show)
     --              | Eval e
-    --     deriving (Show)
 
-    -- instance Functor Stmt where
-    --     fmap f (Def p v) = Def s (f i)
+    instance Functor Stmt where
+        fmap f (Com i) = Com (f i)
     --     fmap f (Eval i)  = Eval (f i)
 
     --data Cell = (CellId, CellData)
@@ -26,7 +26,7 @@ module Common where
 
     data GridData = GridData {  height :: Int,
                                 width :: Int,
-                                grid :: Vector ( Vector (CellId, CellId)),
+                                grid :: V.Vector ( V.Vector (CellId, CellId)),
                                 upLimit :: Int,
                                 loLimit :: Int,
                                 leLimit :: Int,
@@ -37,9 +37,10 @@ module Common where
     data Comm = UpdateCell Pos Variable 
                 | Step 
                 | CheckN Pos 
-                | Def CellName (Colour Double) [Int] [Int]
-
+                | DefCell Variable Variable [Int] [Int]
+        deriving (Show)
+        
     data Error = UndefVar 
         deriving (Eq, Show)
 
-    data Env = (GridData, [CellData])
+    type Env = (GridData, [CellData])

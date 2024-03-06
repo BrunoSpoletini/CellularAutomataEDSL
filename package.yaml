@@ -24,6 +24,9 @@ dependencies:
 - threepenny-gui
 - colour
 - containers
+- vector
+- strict # to use strict tuples (:!:)
+- array
 #- text quiza sirve <-
 # - parsec
 # - pretty

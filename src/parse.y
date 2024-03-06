@@ -1,18 +1,24 @@
 {
-    module Parse where
-    import Common
+module Parse where
+import Common
+import Data.Maybe
+import Data.Char
+import Data.Tuple
 }
 
 
 %monad { P } { thenP } { returnP }
-%name command Com
+--%name command Com
 --%name commands Coms
+%name parseStmt Com
+%name parseStmts Coms
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
-%error { parseError }
+--%error { parseError }
 
 -- %right VAR
+
 -- %left '=' 
 -- %right '->'
 -- %right FST SND
@@ -27,106 +33,122 @@
     '('     { TOpen }
     ')'     { TClose }
     ','     { TComa }
+    '['     { TBrackO }
+    ']'     { TBrackC }
     NVAR    { NVar $$ }
     --CVAR    { TColour $$}
-    DEF     { TDef }
+    DEFCELL     { TDefCell }
     INT     { TInt $$ }
     STEP    { TStep }
     CHECK   { TCheck }
     UPDATE  { TUpdate }
+
+%%
+
+-- Op          : Com                   { Eval $1 }
+
+Coms        : Com Coms              { Com $1 : $2 }
+            |                       { [] }
 
 Com         : DefCell               { $1 }
             | UPDATE Position NVAR  { UpdateCell $2 $3 }
             | CHECK Position        { CheckN $2 } 
             | STEP                  { Step }
 
-DefCell     : DEF NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { Def $2 $5 $8 $12  }
+DefCell     : DEFCELL NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { DefCell $2 $5 $8 $12  }
 
 NList       : INT NList             { $1 : $2 }
-            | ',' NLIst             { $2 }
+            | ',' NList             { $2 }
             |                       {[]}
 
-Position    : '(' INT ',' INT ')'   { Pair $2 $4 }
+Position    : '(' INT ',' INT ')'   { ($2, $4) }
+
+lineno      :: { LineNumber }
+             : {- empty -}      {% getLineNo }
 
 --Coms        : Com Coms              { $1 : $2 }
 --            |                       { [] }
 
 {
-    parseError :: [Token] -> a 
-    parseError _ = error "Parse error"
-        
-    data ParseResult a = Ok a | Failed String
-                    deriving Show                     
-    type LineNumber = Int
-    type P a = String -> LineNumber -> ParseResult a
+data ParseResult a = Ok a | Failed String
+                        deriving Show  
 
-    getLineNo :: P LineNumber
-    getLineNo = \s l -> Ok l
+type LineNumber = Int
+type P a = String -> LineNumber -> ParseResult a
 
-    thenP :: P a -> (a -> P b) -> P b
-    m `thenP` k = \s l-> case m s l of
-                            Ok a     -> k a s l
-                            Failed e -> Failed e
-                            
-    returnP :: a -> P a
-    returnP a = \s l-> Ok a
+-- parseError :: Token -> P a
+-- parseError = getLineNo `thenP` \line ->
+--             failP (show line ++ ": parse error")
+    
+getLineNo :: P LineNumber
+getLineNo = \s l -> Ok l
 
-    failP :: String -> P a
-    failP err = \s l -> Failed err
+thenP :: P a -> (a -> P b) -> P b
+m `thenP` k = \s l-> case m s l of
+                        Ok a     -> k a s l
+                        Failed e -> Failed e
+                        
+returnP :: a -> P a
+returnP a = \s l-> Ok a
 
-    catchP :: P a -> (String -> P a) -> P a
-    catchP m k = \s l -> case m s l of
-                            Ok a     -> Ok a
-                            Failed e -> k e s l
+failP :: String -> P a
+failP err = \s l -> Failed err
 
-    happyError :: P a
-    happyError = \ s i -> Failed $ "Línea "++(show (i::LineNumber))++": Error de parseo\n"++(s)
+catchP :: P a -> (String -> P a) -> P a
+catchP m k = \s l -> case m s l of
+                        Ok a     -> Ok a
+                        Failed e -> k e s l
 
-    data Token = 
-          TEquals
-        | TOpen
-        | TClose
-        | TComa
-        | NVar String
-        | TDef
-        | TInt Int
-        | TStep
-        | TCheck
-        | TUpdate
-        | TEOF
+happyError :: P a
+happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error\n"++(s)
 
-    ---
+data Token = 
+        TEquals
+    | TOpen
+    | TClose
+    | TComa
+    | NVar String
+    | TDefCell
+    | TInt Int
+    | TStep
+    | TCheck
+    | TUpdate
+    | TEOF
+    | TBrackO
+    | TBrackC
 
-    lexer cont s = case s of
-                    [] -> cont TEOF []
-                    ('\n':s) -> \line -> lexer cont s (line + 1)
-                    (c:cs)
-                        | isSpace c = lexer cont cs
-                        | isAlpha c = lexVar (c:cs)
-                        | isDigit c = lexNum (c:cs)
-                    lexer ('=':cs) = cont TEquals cs
-                    lexer ('(':cs) = cont TOpen cs
-                    lexer (')':cs) = cont TClose cs
-                    lexer (',':cs) = cont TComa cs
+---
 
-                    lexNum cs = cont (TInt (read num)) rest
-                        where (num,rest) = span isDigit cs
+lexer cont s = case s of
+                [] -> cont TEOF []
+                ('\n':s) -> \line -> lexer cont s (line + 1)
+                (c:cs)
+                    | isSpace c -> lexer cont cs
+                    | isAlpha c -> lexVar (c:cs)
+                    | isDigit c -> lexNum (c:cs)
+                ('=':cs) -> cont TEquals cs
+                ('(':cs) -> cont TOpen cs
+                (')':cs) -> cont TClose cs
+                (',':cs) -> cont TComa cs
+                unknown 	-> \line -> Failed $ 
+                 "Line "++(show line)++": Cannot be recognized "++(show $ take 10 unknown)++ "..."
+                where   lexNum cs = cont (TInt (read num)) rest
+                            where (num,rest) = span isDigit cs
+                        lexVar cs =
+                            case span isAlpha cs of
+                                ("DEFCELL", rest) -> cont TDefCell rest
+                                ("STEP", rest) -> cont TStep rest
+                                ("CHECK", rest) -> cont TCheck rest
+                                ("UPDATE", rest) -> cont TUpdate rest
+                                (var, rest)   -> cont (NVar var) rest
 
-                    lexVar cs =
-                        case span isAlpha cs of
-                            ("DEF", rest) -> cont TDef rest
-                            ("STEP", rest) -> cont TStep rest
-                            ("CHECK", rest) -> cont TCheck rest
-                            ("UPDATE", rest) -> cont TUpdate rest
-                            (var, rest)   -> cont (NVar var) rest
-
-    --coms_parse s = Coms s 1
-    com_parse s = Com s 1
+stmts_parse s = parseStmts s 1
+stmt_parse s = parseStmt s 1
 
 }
 
     -- Gramatica
-    -- comm := 'DEF' var '=' '(' var ',' '[' numList ']' ',' '[' numList ']' ')' 
+    -- comm := 'DEFCELL' var '=' '(' var ',' '[' numList ']' ',' '[' numList ']' ')' 
     --       | 'UPDATE' pos var
     --       | 'CHECK' pos
     --       | 'STEP' 
