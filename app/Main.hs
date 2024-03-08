@@ -1,22 +1,22 @@
-module Main (main) where
+-- module Main (main) where
 
-import Front
-import Parse
-import Common
+-- import Front
+-- import Parse
+-- import Common
 -- main :: IO ()
 -- main = startCA
 
 
 
+-- --"DEFCELL Carla = (rojo, [1,2,3], [6,7,8])\n"
 
+-- --main :: IO ()
+-- main =   case (getContents >>= stmts_parse ) of
+--             Ok r -> print r
+--             Failed s -> print s
+-- --putStrLn (render (printEnv env))
+-- --stmt_parse "Step"
 
---main :: IO ()
-main =   case stmts_parse "STEP\n" of
-            Ok r -> print r
-            Failed s -> print s
---putStrLn (render (printEnv env))
---stmt_parse "Step"
-{-
 
 module Main where
 
@@ -36,6 +36,7 @@ import           Text.PrettyPrint.HughesPJ      ( render
                                                 , text
                                                 )
 
+import           Front
 import           Common
 import           Parse
 ---------------------
@@ -226,18 +227,16 @@ printPhrase x = do
   x' <- parseIO "<interactive>" stmt_parse x
   maybe (return ()) (printStmt . fmap (\y -> (y, conversion y))) x'
 
-printStmt :: Stmt (LamTerm, Term) -> InputT IO ()
+printArr x = "test"
+
+printStmt :: Stmt Comm -> InputT IO ()
 printStmt stmt = lift $ do
-  let outtext = case stmt of
-        Def x (_, e) -> "def " ++ x ++ " = " ++ render (printTerm e)
-        Eval (d, e) ->
-          "LamTerm AST:\n"
-            ++ show d
-            ++ "\n\nTerm AST:\n"
-            ++ show e
-            ++ "\n\nSe muestra como:\n"
-            ++ render (printTerm e)
-  putStrLn outtext
+    let outtext = case stmt of
+            UpdateCell (x, y) var -> "Update " ++ "(" ++ x ++ "," ++ y ++ ") " ++ var ++ "\n"
+            Step -> "Step\n"
+            CheckC (x, y) -> "Check (" ++ x ", " y ")\n"
+            DefCell var colour xs ys -> "DeffCell " ++ var ++ "= (" ++ colour ++ " , " ++ printArr xs ++ ", " ++ printArr ys ++ ")\n"
+    putStrLn outtext
 
 parseIO :: String -> (String -> ParseResult a) -> String -> InputT IO (Maybe a)
 parseIO f p x = lift $ case p x of
@@ -246,23 +245,39 @@ parseIO f p x = lift $ case p x of
     return Nothing
   Ok r -> return (Just r)
 
-handleStmt :: State -> Stmt LamTerm -> InputT IO State
-handleStmt state stmt = lift $ do
+handleStmt :: State -> Stmt Comm -> InputT IO State
+handleStmt state@(S inter, lfile, env) stmt = lift $ do
   case stmt of
-    Def x e -> checkType x (conversion e)
-    Eval e  -> checkType it (conversion e)
- where
-  checkType i t = do
-    case infer (env state) t of
-      Left  err -> putStrLn ("Error de tipos: " ++ err) >> return state
-      Right ty  -> checkEval i t ty
-  checkEval i t ty = do
-    let v = eval (env state) t
-    _ <- when (inter state) $ do
-      let outtext =
-            if i == it then render (printTerm (quote v)) else render (text i)
-      putStrLn outtext
-    return (state { env = (Global i, (v, ty)) : env state })
+    UpdateCell pos var -> return Nothing
+    Step -> return Nothing
+    CheckC (x, y) -> CheckCell env pos
+    DefCell var colour xs ys -> return Nothing
+
+--     Def x e -> checkType x (conversion e)
+--     Eval e  -> checkType it (conversion e)
+--  where
+--   checkType i t = do
+--     case infer (env state) t of
+--       Left  err -> putStrLn ("Error de tipos: " ++ err) >> return state
+--       Right ty  -> checkEval i t ty
+--   checkEval i t ty = do
+--     let v = eval (env state) t
+--     _ <- when (inter state) $ do
+--       let outtext =
+--             if i == it then render (printTerm (quote v)) else render (text i)
+--       putStrLn outtext
+--     return (state { env = (Global i, (v, ty)) : env state })
+
+-- checkCell :: Env -> Pos -> Env
+-- checkCell (gData, c:cl) (x, y) =  print ( getCellName env ((gData ! y) ! x))
+
+-- getCell :: Env -> CellId -> CellData
+-- getCell (gData, c:cl) idCell =  if cId c == idCell then c 
+--                                     else getCell (gData, cl) idCell
+                                    
+-- updateCell env (x, y) var = 
+
+-- type Env = (GridData, [CellData])
 
 prelude :: String
 prelude = "Ejemplos/Prelude.lam"
@@ -270,4 +285,3 @@ prelude = "Ejemplos/Prelude.lam"
 it :: String
 it = "it"
 
--}

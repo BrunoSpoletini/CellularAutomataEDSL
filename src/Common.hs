@@ -2,6 +2,7 @@ module Common where
     import Data.Colour 
     --import Data.Map.Strict as M
     import qualified Data.Vector as V
+    
 
     -- Comandos interactivos o de archivos
     data Stmt e =  Com e
@@ -18,25 +19,24 @@ module Common where
 
     type Variable = String
 
-    data CellData = CellData {  id :: CellId,
+    data CellData = CellData {  cId :: CellId,
                                 name :: Variable,
                                 colour :: Colour Double,
                                 bornL :: [Int],
                                 surviveL :: [Int] }
-
+        deriving (Show)
+ 
     data GridData = GridData {  height :: Int,
                                 width :: Int,
-                                grid :: V.Vector ( V.Vector (CellId, CellId)),
-                                upLimit :: Int,
-                                loLimit :: Int,
-                                leLimit :: Int,
-                                riLimit :: Int }
+                                grid :: V.Vector ( V.Vector CellId),
+                                limits :: [Int]
+                                }
 
     type Pos = (Int, Int)
 
     data Comm = UpdateCell Pos Variable 
                 | Step 
-                | CheckN Pos 
+                | CheckC Pos 
                 | DefCell Variable Variable [Int] [Int]
         deriving (Show)
         
@@ -44,3 +44,7 @@ module Common where
         deriving (Eq, Show)
 
     type Env = (GridData, [CellData])
+
+      -- Tipos de los nombres
+    data Name =  Global  String
+        deriving (Show, Eq)

@@ -52,7 +52,7 @@ Coms        : Com Coms              { Com $1 : $2 }
 
 Com         : DefCell               { $1 }
             | UPDATE Position NVAR  { UpdateCell $2 $3 }
-            | CHECK Position        { CheckN $2 } 
+            | CHECK Position        { CheckC $2 } 
             | STEP                  { Step }
 
 DefCell     : DEFCELL NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { DefCell $2 $5 $8 $12  }
@@ -130,6 +130,8 @@ lexer cont s = case s of
                 ('(':cs) -> cont TOpen cs
                 (')':cs) -> cont TClose cs
                 (',':cs) -> cont TComa cs
+                ('[':cs) -> cont TBrackO cs
+                (']':cs) -> cont TBrackC cs
                 unknown 	-> \line -> Failed $ 
                  "Line "++(show line)++": Cannot be recognized "++(show $ take 10 unknown)++ "..."
                 where   lexNum cs = cont (TInt (read num)) rest

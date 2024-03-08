@@ -3,34 +3,65 @@ module Automata where
 import Common
 import Monads
 import Prelude
-import qualified Data.Map.Strict as M
+-- import qualified Data.Map.Strict as M
 import Data.Strict.Tuple
 
 -- Va a tener una version de lo siguiente: EN DESARROLLO
 
--- -- Entornos
--- type Env = M.Map Variable Int
+-- Enviroments
+-- type Env = (GridData, [CellData]) -- declared in common
 
--- -- Entorno nulo
--- initEnv :: Env
--- initEnv = M.empty
 
--- -- Mónada estado
--- newtype State a = State { runState :: Env -> Pair a Env }
+deadCell = CellData {   cId = 0, 
+                        name = "dead", 
+                        colour = "grey", 
+                        bornL = [], 
+                        surviveL  = [] }
 
--- instance Monad State where
---   return x = State (\s -> (x :!: s))
---   m >>= f = State (\s -> let (v :!: s') = runState m s in runState (f v) s')
+grid = GridData {   height = 100,
+                    width = 100,
+                    grid = fromList (replicate 100 (fromList (replicate 100 0))),
+                    limits = [0,0,0,0] }
 
--- -- Para calmar al GHC
--- instance Functor State where
---   fmap = liftM
+-- Null enviroment
+initEnv :: Env
+initEnv = (grid, [deadCell])
 
--- instance Applicative State where
---   pure  = return
---   (<*>) = ap
+-- State Monad with Error Handler
+newtype StateError a =
+  StateError { runStateError :: Env -> Either Error ( Pair a Env) }
 
--- instance MonadState State where
---   lookfor v = State (\s -> (lookfor' v s :!: s))
---     where lookfor' v s = fromJust $ M.lookup v s
---   update v i = State (\s -> (() :!: update' v i s)) where update' = M.insert
+-- Para calmar al GHC
+instance Functor StateError where
+  fmap = liftM
+
+instance Applicative StateError where
+  pure  = return
+  (<*>) = ap
+
+instance Monad StateError where
+  return x = StateError (\s -> Right (x :!: s))
+  m >>= f = StateError (\s ->   let e = runStateError m s 
+                                in case e of
+                                    (Left err) -> Left err
+                                    (Right (v :!: s')) -> runStateError (f v) s')
+
+-- Ejercicio 2.b: Dar una instancia de MonadError para StateError:
+instance MonadError StateError where
+  throw e = StateError(\s -> Left e)
+
+-- Ejercicio 2.c: Dar una instancia de MonadState para StateError:
+instance MonadState StateError where
+  lookfor v = StateError (\s -> lookfor' v s)
+    where lookfor' v s = case M.lookup v s of
+                          Nothing -> Left UndefVar
+                          (Just x) -> Right (x :!: s)
+  update v i = StateError (\s -> Right (() :!: (update' v i s))) 
+    where update' = M.insert
+
+-- Ejercicio 2.d: Implementar el evaluador utilizando la monada StateError.
+-- Evalua un programa en el estado nulo
+eval :: Comm -> Either Error Env
+eval c =  case runStateError (stepCommStar c) initEnv of
+            (Left err) -> Left err
+            (Right (v :!: s')) -> Right s'

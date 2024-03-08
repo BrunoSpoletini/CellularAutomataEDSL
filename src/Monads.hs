@@ -2,14 +2,14 @@ module Monads where
     
 import Common
 
--- Clase para representar mónadas con estado de variables
+-- Class for representing monads with state variables
 class Monad m => MonadState m where
-    -- Busca el valor de una variable
+    -- Looks for the value of a variable
     lookfor :: Variable -> m Int
-    -- Cambia el valor de una variable
+    -- Changes the value of a variable
     update :: Variable -> Int -> m ()
 
--- Clase para representar mónadas que lanzan errores
+-- Class for representing monads that can throw errors
 class Monad m => MonadError m where
-    -- Lanza un error
+    -- Throws error
     throw :: Error -> m a

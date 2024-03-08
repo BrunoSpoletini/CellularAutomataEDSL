@@ -38,9 +38,13 @@ library
       src
   build-depends:
       array
-    , base >=4.7 && <5
+    , base
     , colour
     , containers
+    , exceptions
+    , haskeline
+    , mtl
+    , pretty
     , strict
     , threepenny-gui
     , vector
@@ -58,9 +62,13 @@ executable CA-DSL-exe
   build-depends:
       CA-DSL
     , array
-    , base >=4.7 && <5
+    , base
     , colour
     , containers
+    , exceptions
+    , haskeline
+    , mtl
+    , pretty
     , strict
     , threepenny-gui
     , vector
@@ -79,9 +87,13 @@ test-suite CA-DSL-test
   build-depends:
       CA-DSL
     , array
-    , base >=4.7 && <5
+    , base
     , colour
     , containers
+    , exceptions
+    , haskeline
+    , mtl
+    , pretty
     , strict
     , threepenny-gui
     , vector

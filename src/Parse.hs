@@ -205,7 +205,7 @@ happyReduce_6 = happySpecReduce_2  6 happyReduction_6
 happyReduction_6 (HappyAbsSyn9  happy_var_2)
 	_
 	 =  HappyAbsSyn6
-		 (CheckN happy_var_2
+		 (CheckC happy_var_2
 	)
 happyReduction_6 _ _  = notHappyAtAll 
 
@@ -344,7 +344,7 @@ catchP m k = \s l -> case m s l of
                         Failed e -> k e s l
 
 happyError :: P a
-happyError = \ s i -> Failed $ "Línea "++(show (i::LineNumber))++": Error de parseo\n"++(s)
+happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error\n"++(s)
 
 data Token = 
         TEquals
@@ -374,6 +374,8 @@ lexer cont s = case s of
                 ('(':cs) -> cont TOpen cs
                 (')':cs) -> cont TClose cs
                 (',':cs) -> cont TComa cs
+                ('[':cs) -> cont TBrackO cs
+                (']':cs) -> cont TBrackC cs
                 unknown 	-> \line -> Failed $ 
                  "Line "++(show line)++": Cannot be recognized "++(show $ take 10 unknown)++ "..."
                 where   lexNum cs = cont (TInt (read num)) rest
