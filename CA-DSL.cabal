@@ -46,6 +46,7 @@ library
     , exceptions
     , haskeline
     , mtl
+    , parallel
     , pretty
     , strict
     , threepenny-gui
@@ -72,6 +73,7 @@ executable CA-DSL-exe
     , exceptions
     , haskeline
     , mtl
+    , parallel
     , pretty
     , strict
     , threepenny-gui
@@ -99,6 +101,7 @@ test-suite CA-DSL-test
     , exceptions
     , haskeline
     , mtl
+    , parallel
     , pretty
     , strict
     , threepenny-gui

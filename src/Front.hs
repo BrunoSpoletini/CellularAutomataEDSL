@@ -14,20 +14,8 @@ import           Graphics.UI.Threepenny.Core
 cellSize = 25 :: Double
 canvasSize = 500 :: Double
 
-
 startCA :: IO ()
-startCA = startGUI defaultConfig { jsStatic = Just "." } setup
-
-drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
-drawSquare canvas x y size colour = 
-    let newX =  fromIntegral(floor(x/cellSize)) * cellSize + 1
-        newY =  fromIntegral(floor(y/cellSize)) * cellSize + 1
-    in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
-            canvas # UI.fillRect (newX,newY) (size-2) (size-2)
-
-
-fromIntegralPoint :: (Int, Int) -> (Double, Double)
-fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
+startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 setup :: Window -> UI ()
 setup window = do
@@ -82,9 +70,18 @@ setup window = do
                 ]
         ]
     
-
     return()
          
+drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
+drawSquare canvas x y size colour = 
+    let newX =  fromIntegral(floor(x/cellSize)) * cellSize + 1
+        newY =  fromIntegral(floor(y/cellSize)) * cellSize + 1
+    in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
+            canvas # UI.fillRect (newX,newY) (size-2) (size-2)
+
+
+fromIntegralPoint :: (Int, Int) -> (Double, Double)
+fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
 -- Draw the whole canvas
 drawCanvas :: Int -> Int -> UI (Element, Element)

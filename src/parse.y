@@ -10,11 +10,11 @@ import Data.Tuple
 --%name command Com
 --%name commands Coms
 
--- %name parseStmt Comm
--- %name parseStmts Comms
+%name parseStmt Comm
+%name parseStmts Comms
 
-%name parseStmtAsk Check
-%name parseStmtsDefs Comms
+-- %name parseStmtAsk Check
+-- %name parseStmtsDefs Comms
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
@@ -48,13 +48,11 @@ import Data.Tuple
 
 %%
 
-
-Check       : CHECK Position        { Ask (CheckC $2) } 
-
-Comms       : Comm Comms            { Def $1 : $2 }
+Comms       : Comm Comms            { $1 : $2 }
             |                       { [] }
 
 Comm        : DefCell               { $1 }
+            | CHECK Position        { CheckC $2 } 
             | UPDATE Position NVAR  { UpdateCell $2 $3 }
             | STEP                  { Step }
 
@@ -144,8 +142,11 @@ lexer cont s = case s of
                                 ("UPDATE", rest) -> cont TUpdate rest
                                 (var, rest)   -> cont (NVar var) rest
 
-stmtAsk_parse s = parseStmtAsk s 1
-stmtDefs_parse s = parseStmtsDefs s 1
+-- stmtAsk_parse s = parseStmtAsk s 1
+-- stmtDefs_parse s = parseStmtsDefs s 1
+
+stmts_parse s = parseStmts s 1
+stmt_parse s = parseStmt s 1
 
 }
 

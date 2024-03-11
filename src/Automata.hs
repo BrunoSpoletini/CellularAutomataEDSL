@@ -59,7 +59,7 @@ instance MonadState StateError where
                         Nothing -> Left UndefCell
                         Just cellData -> Right (cellData :!: s) )
 
-    checkGrid (x, y) = StateError(\s -> Right (((grid (fst s) V.! y) V.! x) :!: s) )
+    checkGrid (x, y) = StateError(\s -> Right (((grid (fst s) V.! y) V.! x):!: s) )
 
     updateGrid (x, y) idCell = StateError(\s -> 
         case changeCell idCell (x, y) (fst s) of 
@@ -73,19 +73,20 @@ instance MonadState StateError where
             Right x -> Left NameInUse
         )
 
-eval :: Comm -> Either Error Env
-eval c =  case runStateError (processComm c) initEnv of
-            (Left err) -> Left err
-            (Right (v :!: s)) -> Right s
+checkCell :: Pos -> Env -> String
+checkCell pos env = case runStateError (checkGrid pos) env of
+                      Left err -> "Error: " ++ show err
+                      Right (cellId :!: env) -> show cellId
 
 
+eval :: Comm -> Env -> Either Error Env
+eval c env =  case runStateError (processComm c) env of
+                  (Left err) -> Left err
+                  (Right (v :!: s)) -> Right s
 
 processComm :: (MonadState m, MonadError m) => Comm -> m ()
-processComm (UpdateCell pos name) = do  mId <- lookforCell (Var name)
-                                        updateGrid pos (cId mId)
-                                        
---processComm (CheckC pos) =  checkGrid pos
-                                       
+processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
+                                        updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
 -- processComm Step = 
 

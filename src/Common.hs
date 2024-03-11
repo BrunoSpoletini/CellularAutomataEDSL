@@ -4,15 +4,15 @@ module Common where
     import qualified Data.Vector as V
     
 
-    -- Comandos interactivos o de archivos
-    data Stmt e =   Def e |
-                    Ask e
-         deriving (Show)
+    -- -- Comandos interactivos o de archivos
+    -- data Stmt e =   Def e |
+    --                 Ask e
+    --      deriving (Show)
 
 
-    instance Functor Stmt where
-        fmap f (Def i) = Def (f i)
-        fmap f (Ask i) = Ask (f i)
+    -- instance Functor Stmt where
+    --     fmap f (Def i) = Def (f i)
+    --     fmap f (Ask i) = Ask (f i)
 
     --data Cell = (CellId, CellData)
 

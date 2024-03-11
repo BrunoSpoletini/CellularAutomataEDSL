@@ -18,21 +18,39 @@ import           Text.PrettyPrint.HughesPJ      ( render
                                                 , text
                                                 )
 
+
 import           Front
 import           Common
 import           Parse
+import           Automata
+
+import           Control.Parallel
+
+
+import           Graphics.UI.Threepenny      as UI hiding (map)
+import           Graphics.UI.Threepenny.Canvas as Canvas
+import           Graphics.UI.Threepenny.Core
 
 ---------------------
 --- Interpreter
 ---------------------
 
+cellSize = 25 :: Double
+canvasSize = 500 :: Double
+
 main :: IO ()
-main = runInputT defaultSettings main'
+main = do startGUI defaultConfig { jsStatic = Just "."} setupComb
+            where setupComb = do  ret <- setup
+                                  liftIO $ runInputT defaultSettings main'
+                                  --liftIO $ return ()
+                                  ret
+--main = runInputT defaultSettings main'
+
 
 main' :: InputT IO ()
 main' = do
   args <- lift getArgs
-  readevalprint args (S True "" [])
+  readevalprint args (S True "" initEnv)
 
 iname, iprompt :: String
 iname = "Autómatas Celulares"
@@ -58,6 +76,7 @@ readevalprint args state@(S inter lfile env) =
         mx <- MC.catch
           (if inter then getInputLine iprompt else lift $ fmap Just getLine)
           (lift . ioExceptionCatcher)
+        lift $ putStrLn "" -- DEBUG
         case mx of
           Nothing -> return ()
           Just "" -> rec st
@@ -117,9 +136,9 @@ handleCommand state@(S inter lfile env) cmd = case cmd of
   Quit   -> lift $ when (not inter) (putStrLn "!@#$^&*") >> return Nothing
   Noop   -> return (Just state)
   Help   -> lift $ putStr (helpTxt commands) >> return (Just state)
-  Browse -> lift $ do
-    putStr (unlines [ s | Global s <- reverse (nub (map fst env)) ])
-    return (Just state)
+--   Browse -> lift $ do
+--     putStr (unlines [ s | Global s <- reverse (nub (map fst env)) ])
+--     return (Just state)
   Compile c -> do
     state' <- case c of
       CompileInteractive s -> compilePhrase state s
@@ -205,17 +224,16 @@ compilePhrase state x = do
   x' <- parseIO "<interactive>" stmt_parse x
   maybe (return state) (handleStmt state) x'
 
-
 printArr x = "test"
 
-printStmt :: Stmt Comm -> InputT IO ()
-printStmt stmt = lift $ do
-    let outtext = case stmt of
-            UpdateCell (x, y) var -> "Update " ++ "(" ++ x ++ "," ++ y ++ ") " ++ var ++ "\n"
-            Step -> "Step\n"
-            CheckC (x, y) -> "Check (" ++ x ", " y ")\n"
-            DefCell var colour xs ys -> "DeffCell " ++ var ++ "= (" ++ colour ++ " , " ++ printArr xs ++ ", " ++ printArr ys ++ ")\n"
-    putStrLn outtext
+-- printStmt :: Comm -> InputT IO ()
+-- printStmt stmt = lift $ do
+--     let outtext = case stmt of
+--             UpdateCell (x, y) var -> "Update " ++ "(" ++ x ++ "," ++ y ++ ") " ++ var ++ "\n"
+--             Step -> "Step\n"
+--             CheckC (x, y) -> "Check (" ++ x ", " y ")\n"
+--             DefCell var colour xs ys -> "DeffCell " ++ var ++ "= (" ++ colour ++ " , " ++ printArr xs ++ ", " ++ printArr ys ++ ")\n"
+--     putStrLn outtext
 
 parseIO :: String -> (String -> ParseResult a) -> String -> InputT IO (Maybe a)
 parseIO f p x = lift $ case p x of
@@ -224,45 +242,17 @@ parseIO f p x = lift $ case p x of
     return Nothing
   Ok r -> return (Just r)
 
-handleStmt :: State -> Stmt Comm -> InputT IO State
+handleStmt :: State -> Comm -> InputT IO State
 handleStmt state@(S inter lfile env) stmt = lift $ do
   case stmt of
-    Def x -> 
-    Ask x -> 
-
-    UpdateCell pos var -> return Nothing
-    Step -> return Nothing
-    CheckC (x, y) -> return Nothing --CheckCell env pos
-    DefCell var colour xs ys -> return Nothing
-
---     Def x e -> checkType x (conversion e)
---     Eval e  -> checkType it (conversion e)
---  where
---   checkType i t = do
---     case infer (env state) t of
---       Left  err -> putStrLn ("Error de tipos: " ++ err) >> return state
---       Right ty  -> checkEval i t ty
---   checkEval i t ty = do
---     let v = eval (env state) t
---     _ <- when (inter state) $ do
---       let outtext =
---             if i == it then render (printTerm (quote v)) else render (text i)
---       putStrLn outtext
---     return (state { env = (Global i, (v, ty)) : env state })
-
--- checkCell :: Env -> Pos -> Env
--- checkCell (gData, c:cl) (x, y) =  print ( getCellName env ((gData ! y) ! x))
-
--- getCell :: Env -> CellId -> CellData
--- getCell (gData, c:cl) idCell =  if cId c == idCell then c 
---                                     else getCell (gData, cl) idCell
-                                    
--- updateCell env (x, y) var = 
-
--- type Env = (GridData, [CellData])
+    CheckC (x, y) -> if inter then putStrLn (checkCell (x, y) env) >> return state
+                        else return state
+    _ -> case eval stmt env of
+            Left err -> putStrLn (show err) >> return state
+            Right nEnv -> return $ S inter lfile nEnv
 
 prelude :: String
-prelude = "Ejemplos/Prelude.lam"
+prelude = "Ejemplos/testing.txt"
 
 it :: String
 it = "it"
