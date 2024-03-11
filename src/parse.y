@@ -6,12 +6,15 @@ import Data.Char
 import Data.Tuple
 }
 
-
 %monad { P } { thenP } { returnP }
 --%name command Com
 --%name commands Coms
-%name parseStmt Com
-%name parseStmts Coms
+
+-- %name parseStmt Comm
+-- %name parseStmts Comms
+
+%name parseStmtAsk Check
+%name parseStmtsDefs Comms
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
@@ -45,14 +48,14 @@ import Data.Tuple
 
 %%
 
--- Op          : Com                   { Eval $1 }
 
-Coms        : Com Coms              { Com $1 : $2 }
+Check       : CHECK Position        { Ask (CheckC $2) } 
+
+Comms       : Comm Comms            { Def $1 : $2 }
             |                       { [] }
 
-Com         : DefCell               { $1 }
+Comm        : DefCell               { $1 }
             | UPDATE Position NVAR  { UpdateCell $2 $3 }
-            | CHECK Position        { CheckC $2 } 
             | STEP                  { Step }
 
 DefCell     : DEFCELL NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { DefCell $2 $5 $8 $12  }
@@ -65,9 +68,6 @@ Position    : '(' INT ',' INT ')'   { ($2, $4) }
 
 lineno      :: { LineNumber }
              : {- empty -}      {% getLineNo }
-
---Coms        : Com Coms              { $1 : $2 }
---            |                       { [] }
 
 {
 data ParseResult a = Ok a | Failed String
@@ -144,8 +144,8 @@ lexer cont s = case s of
                                 ("UPDATE", rest) -> cont TUpdate rest
                                 (var, rest)   -> cont (NVar var) rest
 
-stmts_parse s = parseStmts s 1
-stmt_parse s = parseStmt s 1
+stmtAsk_parse s = parseStmtAsk s 1
+stmtDefs_parse s = parseStmtsDefs s 1
 
 }
 

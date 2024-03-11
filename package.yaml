@@ -38,13 +38,13 @@ dependencies:
 # - strict
 # - directory
 
-# default-extensions:
+default-extensions:
+- MultiWayIf
 # - GADTs
 # - StandaloneDeriving
 # - PatternSynonyms
 # - FlexibleInstances
 # - TupleSections
-# - MultiWayIf
 
 #ghc-options:
 # - -Wall

@@ -1,21 +1,3 @@
--- module Main (main) where
-
--- import Front
--- import Parse
--- import Common
--- main :: IO ()
--- main = startCA
-
-
-
--- --"DEFCELL Carla = (rojo, [1,2,3], [6,7,8])\n"
-
--- --main :: IO ()
--- main =   case (getContents >>= stmts_parse ) of
---             Ok r -> print r
---             Failed s -> print s
--- --putStrLn (render (printEnv env))
--- --stmt_parse "Step"
 
 
 module Main where
@@ -39,6 +21,7 @@ import           Text.PrettyPrint.HughesPJ      ( render
 import           Front
 import           Common
 import           Parse
+
 ---------------------
 --- Interpreter
 ---------------------
@@ -142,21 +125,21 @@ handleCommand state@(S inter lfile env) cmd = case cmd of
       CompileInteractive s -> compilePhrase state s
       CompileFile        f -> compileFile (state { lfile = f }) f
     return (Just state')
-  Print s ->
-    let s' = reverse (dropWhile isSpace (reverse (dropWhile isSpace s)))
-    in  printPhrase s' >> return (Just state)
-  Recompile -> if null lfile
-    then lift $ putStrLn "No hay un archivo cargado.\n" >> return (Just state)
-    else handleCommand state (Compile (CompileFile lfile))
-  FindType s -> do
-    x' <- parseIO "<interactive>" term_parse s
-    t  <- case x' of
-      Nothing -> return $ Left "Error en el parsing."
-      Just x  -> return $ infer env $ conversion $ x
-    case t of
-      Left  err -> lift (putStrLn ("Error de tipos: " ++ err)) >> return ()
-      Right t'  -> lift $ putStrLn $ render $ printType t'
-    return (Just state)
+--   Print s ->
+--     let s' = reverse (dropWhile isSpace (reverse (dropWhile isSpace s)))
+--     in  printPhrase s' >> return (Just state)
+--   Recompile -> if null lfile
+--     then lift $ putStrLn "No hay un archivo cargado.\n" >> return (Just state)
+--     else handleCommand state (Compile (CompileFile lfile))
+--   FindType s -> do
+--     x' <- parseIO "<interactive>" term_parse s
+--     t  <- case x' of
+--       Nothing -> return $ Left "Error en el parsing."
+--       Just x  -> return $ infer env $ conversion $ x
+--     case t of
+--       Left  err -> lift (putStrLn ("Error de tipos: " ++ err)) >> return ()
+--       Right t'  -> lift $ putStrLn $ render $ printType t'
+--     return (Just state)
 
 data InteractiveCommand = Cmd [String] String (String -> Command) String
 
@@ -222,10 +205,6 @@ compilePhrase state x = do
   x' <- parseIO "<interactive>" stmt_parse x
   maybe (return state) (handleStmt state) x'
 
-printPhrase :: String -> InputT IO ()
-printPhrase x = do
-  x' <- parseIO "<interactive>" stmt_parse x
-  maybe (return ()) (printStmt . fmap (\y -> (y, conversion y))) x'
 
 printArr x = "test"
 
@@ -246,11 +225,14 @@ parseIO f p x = lift $ case p x of
   Ok r -> return (Just r)
 
 handleStmt :: State -> Stmt Comm -> InputT IO State
-handleStmt state@(S inter, lfile, env) stmt = lift $ do
+handleStmt state@(S inter lfile env) stmt = lift $ do
   case stmt of
+    Def x -> 
+    Ask x -> 
+
     UpdateCell pos var -> return Nothing
     Step -> return Nothing
-    CheckC (x, y) -> CheckCell env pos
+    CheckC (x, y) -> return Nothing --CheckCell env pos
     DefCell var colour xs ys -> return Nothing
 
 --     Def x e -> checkType x (conversion e)

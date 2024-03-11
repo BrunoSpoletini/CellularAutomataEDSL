@@ -5,13 +5,14 @@ module Common where
     
 
     -- Comandos interactivos o de archivos
-    data Stmt e =  Com e
+    data Stmt e =   Def e |
+                    Ask e
          deriving (Show)
-    --              | Eval e
+
 
     instance Functor Stmt where
-        fmap f (Com i) = Com (f i)
-    --     fmap f (Eval i)  = Eval (f i)
+        fmap f (Def i) = Def (f i)
+        fmap f (Ask i) = Ask (f i)
 
     --data Cell = (CellId, CellData)
 
@@ -19,16 +20,20 @@ module Common where
 
     type Variable = String
 
+    data Ident = Id CellId | Var Variable
+
+    type Grid =  V.Vector ( V.Vector CellId)
+
     data CellData = CellData {  cId :: CellId,
                                 name :: Variable,
-                                colour :: Colour Double,
+                                colour :: Variable,
                                 bornL :: [Int],
                                 surviveL :: [Int] }
         deriving (Show)
  
     data GridData = GridData {  height :: Int,
                                 width :: Int,
-                                grid :: V.Vector ( V.Vector CellId),
+                                grid :: Grid,
                                 limits :: [Int]
                                 }
 
@@ -40,7 +45,7 @@ module Common where
                 | DefCell Variable Variable [Int] [Int]
         deriving (Show)
         
-    data Error = UndefVar 
+    data Error = UndefCell | OutOfBounds | NameInUse
         deriving (Eq, Show)
 
     type Env = (GridData, [CellData])
@@ -48,3 +53,4 @@ module Common where
       -- Tipos de los nombres
     data Name =  Global  String
         deriving (Show, Eq)
+

@@ -36,6 +36,8 @@ library
       Paths_CA_DSL
   hs-source-dirs:
       src
+  default-extensions:
+      MultiWayIf
   build-depends:
       array
     , base
@@ -58,6 +60,8 @@ executable CA-DSL-exe
       Paths_CA_DSL
   hs-source-dirs:
       app
+  default-extensions:
+      MultiWayIf
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       CA-DSL
@@ -83,6 +87,8 @@ test-suite CA-DSL-test
       Paths_CA_DSL
   hs-source-dirs:
       test
+  default-extensions:
+      MultiWayIf
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       CA-DSL
