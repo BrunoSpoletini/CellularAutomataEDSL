@@ -14,10 +14,14 @@ import           System.Console.Haskeline
 import qualified Control.Monad.Catch           as MC
 import           System.Environment
 import           System.IO               hiding ( print )
-import           Text.PrettyPrint.HughesPJ      ( render
-                                                , text
-                                                )
+-- import           Text.PrettyPrint.HughesPJ      ( render
+--                                                 , text
+--                                                 )
+import Data.IORef
 
+import           Graphics.UI.Threepenny      as UI hiding (map)
+import           Graphics.UI.Threepenny.Canvas as Canvas
+import           Graphics.UI.Threepenny.Core
 
 import           Front
 import           Common
@@ -26,25 +30,39 @@ import           Automata
 
 import           Control.Parallel
 
-
-import           Graphics.UI.Threepenny      as UI hiding (map)
-import           Graphics.UI.Threepenny.Canvas as Canvas
-import           Graphics.UI.Threepenny.Core
-
 ---------------------
 --- Interpreter
 ---------------------
 
-cellSize = 25 :: Double
-canvasSize = 500 :: Double
+
 
 main :: IO ()
-main = do startGUI defaultConfig { jsStatic = Just "."} setupComb
-            where setupComb = do  ret <- setup
-                                  liftIO $ runInputT defaultSettings main'
-                                  --liftIO $ return ()
-                                  ret
---main = runInputT defaultSettings main'
+--main = startCA
+main = runInputT defaultSettings main'
+
+startCA :: IO ()
+--startCA :: IO ()
+startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
+
+setup :: Window -> UI ()
+setup window = do setupFront window
+
+
+
+-- addFun window = do  canvas <- getElem window "canvas" -- no funciona, cada get te recarga la pagina
+--                     on UI.mousedown canvas $ \(x, y) -> do
+--                         posC <- getIndex canvas x y cellSize
+--                         deb <- getElem window "debug"
+--                         element deb # set text ("DEBUG: " ++ show posC)
+--                         drawSquare canvas x y cellSize "Red"
+
+-- setupEnv :: Window -> UI ()
+-- setupEnv window = do
+--     -- store env value in an IORef
+--     env <- liftIO $ newIORef initEnv
+--     return ()
+
+
 
 
 main' :: InputT IO ()
@@ -71,12 +89,12 @@ data State = S
 
 --  read-eval-print loop
 readevalprint :: [String] -> State -> InputT IO ()
-readevalprint args state@(S inter lfile env) =
+readevalprint args state@(S inter lfile enviroment) =
   let rec st = do
         mx <- MC.catch
           (if inter then getInputLine iprompt else lift $ fmap Just getLine)
           (lift . ioExceptionCatcher)
-        lift $ putStrLn "" -- DEBUG
+        lift $ putStrLn ""
         case mx of
           Nothing -> return ()
           Just "" -> rec st
@@ -86,14 +104,15 @@ readevalprint args state@(S inter lfile env) =
             maybe (return ()) rec st'
   in  do
         state' <- compileFiles (prelude : args) state
-        when inter $ lift $ putStrLn
-          (  "Intérprete de "
-          ++ iname
-          ++ ".\n"
-          ++ "Escriba :? para recibir ayuda."
-          )
-        --  enter loop
-        rec state' { inter = True }
+        liftIO $ startCA (env state')
+        -- when inter $ lift $ putStrLn
+        --   (  "Intérprete de "
+        --   ++ iname
+        --   ++ ".\n"
+        --   ++ "Escriba :? para recibir ayuda."
+        --   )
+        -- --  enter loop
+        -- rec state' { inter = True }
 
 data Command = Compile CompileForm
               | Print String
