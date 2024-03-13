@@ -33,6 +33,7 @@ dependencies:
 - mtl
 - parallel
 - transformers
+- aeson
 #- text quiza sirve <-
 # - parsec
 # - containers

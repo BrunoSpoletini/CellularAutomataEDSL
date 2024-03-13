@@ -31,6 +31,8 @@ library
       MonadAut
       Monads
       Parse
+      ThreePennyAutEvent
+      UnUI
   other-modules:
       Paths_CA_DSL
   autogen-modules:
@@ -43,7 +45,8 @@ library
       TypeSynonymInstances
       FlexibleInstances
   build-depends:
-      array
+      aeson
+    , array
     , base
     , colour
     , containers
@@ -74,6 +77,7 @@ executable CA-DSL-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       CA-DSL
+    , aeson
     , array
     , base
     , colour
@@ -106,6 +110,7 @@ test-suite CA-DSL-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       CA-DSL
+    , aeson
     , array
     , base
     , colour

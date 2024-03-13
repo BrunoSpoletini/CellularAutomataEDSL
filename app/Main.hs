@@ -47,7 +47,7 @@ main = do   putStrLn "test"
 
 setup :: Window -> UI ()
 setup window = do 
-    checkRun $ setupFront2 window
+    checkRun $ setupFront window
 
 
 -- main :: UI ()

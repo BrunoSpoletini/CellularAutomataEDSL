@@ -69,6 +69,9 @@ module Common where
                                         surviveL  = [] }
                         grid = GridData { height = 100,
                                         width = 100,
-                                        grid = V.fromList (replicate 100 (V.fromList (replicate 100 0))),
+                                        grid = V.fromList (replicate 100 (V.fromList (replicate 100 47))),
                                         limits = [0,0,0,0] }
                     in State { cellList = [deadCell], gridData = grid }
+                    
+    checkGrid :: Pos -> Grid -> CellId
+    checkGrid (x, y) g = (g V.! y) V.! x

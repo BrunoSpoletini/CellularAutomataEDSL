@@ -35,8 +35,16 @@ instance (Monad m, MonadUI m) => MonadUI (ExceptT Error m) where
 
 class (MonadUI m, MonadState State m, MonadError Error m) => MonadAut m where
 
+getGrid :: MonadAut m => m Grid
+getGrid = gets (grid . gridData)
+
 setGrid :: MonadAut m => Grid -> m ()
 setGrid g = modify (\s-> s { gridData = (gridData s) { grid = g }})
+
+checkCell :: MonadAut m => Pos -> m CellId
+checkCell (x, y) = do
+    g <- gets gridData
+    return $ (grid g V.! y) V.! x
 
 -- -- -- addCell :: MonadAut m => Variable -> Variable -> [Int] -> [Int] -> m ()
 -- -- -- addCell var col xs ys = do

@@ -7,14 +7,20 @@ import Data.Strict.Tuple hiding (fst, snd)
 
 import           System.Console.Haskeline -- DEBUG
 
-import           Graphics.UI.Threepenny      as UI
+import           Graphics.UI.Threepenny      as UI hiding (onEvent)
 import           Graphics.UI.Threepenny.Canvas as Canvas
-import           Graphics.UI.Threepenny.Core
+import           Graphics.UI.Threepenny.Core hiding (onEvent)
 --import Distribution.Compat.Prelude
 
 import Common
 import Automata
 import MonadAut
+import Control.Applicative.Lift (unLift)
+
+import Control.Monad.Except ( MonadTrans(lift) )
+
+--import ThreePennyAut
+import ThreePennyAutEvent
 
 cellSize = 25 :: Double
 canvasSize = 500 :: Double
@@ -23,32 +29,57 @@ canvasSize = 500 :: Double
 -- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 
-setupFront2 :: Window -> Aut ()
-setupFront2 window = do
+setupFront :: Window -> Aut ()
+setupFront window = do
     liftUI $ UI.addStyleSheet window "foundation-5.css"
     liftUI $ UI.addStyleSheet window "grid.css"
     
     liftUI $ return window # set UI.title "Cellular Automata"
-    --liftUI $ getBody window #+ [ automataDisplay window ]
+    
+    (canvas, debug, display ) <- liftUI $ automataDisplay window
+    liftUI $ getBody window #+ [ display ]
+
+    -- cellId <- checkCell (0,0)
+    -- liftUI $ element debug # set text ("DEBUG: " ++ show cellId)
+
+    -- grid <- getGrid
+
+    -- liftUI $ on UI.mousedown canvas $ \(x, y) -> do
+    --     posC <- getIndex canvas x y cellSize
+    --     let cellId = checkGrid posC grid
+    --         in do 
+    --             element debug # set text ("DEBUG: " ++ show cellId)
+    --             drawSquare canvas x y cellSize "Red"
+                
+    -- liftUI $ on UI.mousedown canvas $ \(x, y) -> do
+    --     posC <- getIndex canvas x y cellSize
+    --     --grid <- unLift getGrid
+    --     -- let cellId = checkGrid posC grid
+    --     --     in do 
+    --     --         element debug # set text ("DEBUG: " ++ show cellId)
+    --     drawSquare canvas x y cellSize "Red"
+
+    onAut UI.mousedown canvas $ \(x, y) -> do
+        grid <- getGrid
+        posC <- liftUI $ getIndex canvas x y cellSize
+        cellId <- checkCell posC
+        liftUI $ element debug # set text ("DEBUG: " ++ show cellId)
+        liftUI $ drawSquare canvas x y cellSize "Red"
+
+
+--on :: (element -> Event a) -> element -> (a -> UI void) -> UI ()
+
     return ()
 
-{-
 
 
 
-setupFront :: Window -> UI ()
-setupFront window = do
-    UI.addStyleSheet window "foundation-5.css"
-    UI.addStyleSheet window "grid.css"
-    return window # set UI.title "Cellular Automata"
-    --getBody window #+ [ automataDisplay window ]
-    return ()
 
 
-automataDisplay :: Window -> UI Element
+--automataDisplay :: Window -> UI (Element, Element)
 automataDisplay window = do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
-    
+
     -- DEBUG
     (wrap, debugWrap, out, debug) <- debugUI canvas
     
@@ -56,20 +87,20 @@ automataDisplay window = do
     clear    <- clearButton canvas
     test     <- UI.button #+ [string "Test"]
 
-    env <- liftIO $ newIORef initEnv
-    selectedCell <- liftIO $ newIORef initEnv
+    -- env <- liftIO $ newIORef initEnv
+    -- selectedCell <- liftIO $ newIORef initEnv
     --case runStateError (addCell var col xs ys) 
 
 
     on UI.mousedown canvas $ \(x, y) -> do
         posC <- getIndex canvas x y cellSize
-        env <- liftIO $ readIORef env
-        case runStateError (checkGrid posC) env of
-            Left err -> throwError canvas canvasContainer
-            Right (cellId :!: env) -> element debug # set text ("DEBUG: " ++ show cellId)
+        -- env <- liftIO $ readIORef env
+        -- case runStateError (checkGrid posC) env of
+        --     Left err -> throwError canvas canvasContainer
+        --     Right (cellId :!: env) -> element debug # set text ("DEBUG: " ++ show cellId)
         drawSquare canvas x y cellSize "Red"
 
-    UI.div #. "page-container" #+
+    return (canvas, debug, UI.div #. "page-container" #+
         [
             UI.div #. "header"#+
                 [element wrap, element debugWrap],
@@ -82,9 +113,9 @@ automataDisplay window = do
                 [element canvasContainer],
             UI.div #. "right",
             UI.div #. "footer"
-        ]
+        ])
 
--}
+
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
                                     element canvasCont # set style [("cursor", "not-allowed"), 
@@ -170,6 +201,9 @@ drawCanvas cellSize canvasSize = do
         #+ [element canvas, element canvasBase]
     return (canvasContainer, canvas)
 
+
 getElem :: Window -> String -> UI Element
 getElem window str = do     elemList <- getElementsByTagName window str
                             return (head elemList)
+
+
