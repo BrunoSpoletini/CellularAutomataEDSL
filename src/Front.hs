@@ -14,7 +14,7 @@ import           Graphics.UI.Threepenny.Core
 
 import Common
 import Automata
-import Monads
+import MonadAut
 
 cellSize = 25 :: Double
 canvasSize = 500 :: Double
@@ -23,12 +23,25 @@ canvasSize = 500 :: Double
 -- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 
+setupFront2 :: Window -> Aut ()
+setupFront2 window = do
+    liftUI $ UI.addStyleSheet window "foundation-5.css"
+    liftUI $ UI.addStyleSheet window "grid.css"
+    
+    liftUI $ return window # set UI.title "Cellular Automata"
+    --liftUI $ getBody window #+ [ automataDisplay window ]
+    return ()
+
+{-
+
+
+
 setupFront :: Window -> UI ()
-setupFront env window = do
+setupFront window = do
     UI.addStyleSheet window "foundation-5.css"
     UI.addStyleSheet window "grid.css"
     return window # set UI.title "Cellular Automata"
-    getBody window #+ [ automataDisplay window ]
+    --getBody window #+ [ automataDisplay window ]
     return ()
 
 
@@ -71,7 +84,7 @@ automataDisplay window = do
             UI.div #. "footer"
         ]
 
-
+-}
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
                                     element canvasCont # set style [("cursor", "not-allowed"), 

@@ -27,9 +27,12 @@ import           Front
 import           Common
 import           Parse
 import           Automata
+import           MonadAut
 
 import           Control.Parallel
 
+import          Control.Monad.Catch
+import System.Exit ( exitWith, ExitCode(ExitFailure) )
 ---------------------
 --- Interpreter
 ---------------------
@@ -37,43 +40,73 @@ import           Control.Parallel
 
 
 main :: IO ()
---main = startCA
-main = runInputT defaultSettings main'
-
-startCA :: IO ()
---startCA :: IO ()
-startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
+main = do   putStrLn "test"
+            --checkRun 
+            startGUI defaultConfig { jsStatic = Just "." } setup
+            return ()
 
 setup :: Window -> UI ()
-setup window = do setupFront window
+setup window = do 
+    checkRun $ setupFront2 window
 
 
-
--- addFun window = do  canvas <- getElem window "canvas" -- no funciona, cada get te recarga la pagina
---                     on UI.mousedown canvas $ \(x, y) -> do
---                         posC <- getIndex canvas x y cellSize
---                         deb <- getElem window "debug"
---                         element deb # set text ("DEBUG: " ++ show posC)
---                         drawSquare canvas x y cellSize "Red"
-
--- setupEnv :: Window -> UI ()
--- setupEnv window = do
---     -- store env value in an IORef
---     env <- liftIO $ newIORef initEnv
---     return ()
-
-
-
-
-main' :: InputT IO ()
-main' = do
-  args <- lift getArgs
-  readevalprint args (S True "" initEnv)
+-- main :: UI ()
+-- main = checkRun $ runInputT defaultSettings main'
 
 iname, iprompt :: String
 iname = "Autómatas Celulares"
 iprompt = "ST> "
 
+
+checkRun :: Aut a -> UI a
+checkRun m = do 
+    res <- runAut m
+    case res of
+        (Left err) -> do
+            liftIO $ putStrLn "Error"
+            liftIO $ exitWith (ExitFailure 1)
+        (Right v) -> return v
+
+-- main' :: (MonadAut m, MonadMask m) => InputT m () -- is mask needed?
+-- main' = do
+--     --args <- lift getArgs
+--     --state' <- compileFiles (prelude : args) initState
+--     liftIO $ liftUI $ putStrLn "Test"
+--     --startCA
+
+-- startCA :: Aut ()
+-- startCA = startGUI defaultConfig { jsStatic = Just "."} setup
+
+-- setup :: Window -> Aut ()
+-- setup window = do   setupFront2 window
+--                     --state' <- compileFiles (prelude : args) state
+
+
+
+
+-- compileFiles :: [String] -> State -> InputT IO State
+-- compileFiles xs s = foldM compileFile s xs
+
+-- compileFile :: State -> String -> InputT IO State
+-- compileFile state f = do
+--   lift $ putStrLn ("Abriendo " ++ f ++ "...")
+--   let f' = reverse (dropWhile isSpace (reverse f))
+--   x <- lift $ Control.Exception.catch
+--     (readFile f')
+--     (\e -> do
+--       let err = show (e :: IOException)
+--       hPutStr stderr
+--               ("No se pudo abrir el archivo " ++ f' ++ ": " ++ err ++ "\n")
+--       return ""
+--     )
+--   stmts <- parseIO f' stmts_parse x
+--   maybe (return state) (foldM handleStmt state) stmts
+
+
+
+
+{-
+        
 ioExceptionCatcher :: IOException -> IO (Maybe a)
 ioExceptionCatcher _ = return Nothing
 
@@ -104,7 +137,7 @@ readevalprint args state@(S inter lfile enviroment) =
             maybe (return ()) rec st'
   in  do
         state' <- compileFiles (prelude : args) state
-        liftIO $ startCA (env state')
+        liftIO $ startCA
         -- when inter $ lift $ putStrLn
         --   (  "Intérprete de "
         --   ++ iname
@@ -276,3 +309,4 @@ prelude = "Ejemplos/testing.txt"
 it :: String
 it = "it"
 
+-}

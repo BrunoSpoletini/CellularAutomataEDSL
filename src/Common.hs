@@ -50,7 +50,25 @@ module Common where
 
     type Env = (GridData, [CellData])
 
+    data State = State
+        {
+            cellList :: [CellData],
+            gridData :: GridData
+        }
+
       -- Tipos de los nombres
     data Name =  Global  String
         deriving (Show, Eq)
 
+    -- Null enviroment
+    initState :: State
+    initState = let     deadCell = CellData { cId = 0, 
+                                        name = "dead", 
+                                        colour = "grey", 
+                                        bornL = [], 
+                                        surviveL  = [] }
+                        grid = GridData { height = 100,
+                                        width = 100,
+                                        grid = V.fromList (replicate 100 (V.fromList (replicate 100 0))),
+                                        limits = [0,0,0,0] }
+                    in State { cellList = [deadCell], gridData = grid }

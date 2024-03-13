@@ -1,7 +1,7 @@
 module Automata where
 
 import Common
-import Monads
+import MonadAut
 import Prelude
 import Control.Monad
 -- import qualified Data.Map.Strict as M
@@ -14,67 +14,31 @@ import qualified Data.Vector as V
 -- Enviroments
 -- type Env = (GridData, [CellData]) -- declared in common
 
--- Null enviroment
-initEnv :: Env
-initEnv = let deadCell = CellData { cId = 0, 
-                                    name = "dead", 
-                                    colour = "grey", 
-                                    bornL = [], 
-                                    surviveL  = [] }
-              grid = GridData { height = 100,
-                                width = 100,
-                                grid = V.fromList (replicate 100 (V.fromList (replicate 100 0))),
-                                limits = [0,0,0,0] }
-            in (grid, [deadCell])
+-- -- State Monad with Error Handler
+-- newtype StateError a =
+--   StateError { runStateError :: Env -> Either Error (Pair a Env) }
 
--- State Monad with Error Handler
-newtype StateError a =
-  StateError { runStateError :: Env -> Either Error (Pair a Env) }
+-- -- Para calmar al GHC
+-- instance Functor StateError where
+--   fmap = liftM
 
--- Para calmar al GHC
-instance Functor StateError where
-  fmap = liftM
+-- instance Applicative StateError where
+--   pure  = return
+--   (<*>) = ap
 
-instance Applicative StateError where
-  pure  = return
-  (<*>) = ap
+-- instance Monad StateError where
+--   return x = StateError (\s -> Right (x :!: s))
+--   m >>= f = StateError (\s ->   let e = runStateError m s 
+--                                 in case e of
+--                                     (Left err) -> Left err
+--                                     (Right (v :!: s')) -> runStateError (f v) s')
 
-instance Monad StateError where
-  return x = StateError (\s -> Right (x :!: s))
-  m >>= f = StateError (\s ->   let e = runStateError m s 
-                                in case e of
-                                    (Left err) -> Left err
-                                    (Right (v :!: s')) -> runStateError (f v) s')
+-- instance MonadError StateError where
+--   throw e = StateError(\s -> Left e)
 
-instance MonadError StateError where
-  throw e = StateError(\s -> Left e)
-
-instance MonadState StateError where
-    lookforCell ident = StateError (\s -> 
-        case ident of
-            Var name -> (case searchCellName s name of
-                            Nothing -> Left UndefCell
-                            Just cellData -> Right (cellData :!: s))
-            Id id -> case searchCellId s id of
-                        Nothing -> Left UndefCell
-                        Just cellData -> Right (cellData :!: s) )
-
-    checkGrid (x, y) = StateError(\s -> Right (((grid (fst s) V.! y) V.! x):!: s) )
-
-    updateGrid (x, y) idCell = StateError(\s -> 
-        case changeCell idCell (x, y) (fst s) of 
-            Nothing -> Left OutOfBounds
-            Just newGrid -> Right (() :!: (newGrid, snd s)))
-                                         
-    addCell var col xs ys = StateError(\s -> 
-        case runStateError (lookforCell (Var var)) s of
-            Left UndefCell -> Right (() :!: (fst s, cell : snd s)) 
-                                where cell = createCell (snd s) var col xs ys
-            Right x -> Left NameInUse
-        )
-
+{-
 checkCell :: Pos -> Env -> String
-checkCell pos env = case runStateError (checkGrid pos) env of
+checkCell pos env = case runAut (checkGrid pos) env of
                       Left err -> "Error: " ++ show err
                       Right (cellId :!: env) -> show cellId
 
@@ -84,7 +48,7 @@ eval c env =  case runStateError (processComm c) env of
                   (Left err) -> Left err
                   (Right (v :!: s)) -> Right s
 
-processComm :: (MonadState m, MonadError m) => Comm -> m ()
+processComm :: MonadAut m => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
@@ -120,3 +84,7 @@ createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1,
                                             colour = col, 
                                             bornL = xs, 
                                             surviveL  = ys }
+
+
+
+-}                                            
