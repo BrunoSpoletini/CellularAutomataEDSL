@@ -41,10 +41,42 @@ getGrid = gets (grid . gridData)
 setGrid :: MonadAut m => Grid -> m ()
 setGrid g = modify (\s-> s { gridData = (gridData s) { grid = g }})
 
+setState :: MonadAut m => State -> m ()
+setState s = modify (\_ -> s)
+
 checkCell :: MonadAut m => Pos -> m CellId
 checkCell (x, y) = do
     g <- gets gridData
     return $ (grid g V.! y) V.! x
+
+
+initState2 :: Int -> State
+initState2 n=let        deadCell = CellData { cId = 0, 
+                                        name = "dead", 
+                                        colour = "grey", 
+                                        bornL = [], 
+                                        surviveL  = [] }
+                        blackCell = CellData { cId = 1, 
+                                        name = "black", 
+                                        colour = "black", 
+                                        bornL = [], 
+                                        surviveL  = [] }                
+                        grid = GridData { height = 20,
+                                        width = 20,
+                                        grid = V.fromList (replicate 20 (V.fromList (replicate 20 n))),
+                                        limits = [0,0,0,0] }
+                in State { cellList = [deadCell, blackCell], gridData = grid }
+
+
+
+
+updateCell :: MonadAut m => Pos -> CellId -> m ()
+updateCell pos idCell = do  g <- gets gridData
+                            case changeCell idCell pos g of
+                                Nothing -> throwError OutOfBounds
+                                Just newGridData -> modify (\s-> s { gridData = newGridData })
+
+-- changeCell :: CellId -> Pos -> GridData -> Maybe GridData
 
 -- -- -- addCell :: MonadAut m => Variable -> Variable -> [Int] -> [Int] -> m ()
 -- -- -- addCell var col xs ys = do
@@ -75,11 +107,6 @@ checkCell (x, y) = do
 -- checkGrid :: MonadAut m => Pos -> m CellId 
 -- checkGrid (x, y) = StateError(\s -> Right (((grid (fst s) V.! y) V.! x):!: s) )
 
--- updateGrid :: MonadAut m => Pos -> CellId -> m ()
--- updateGrid (x, y) idCell = StateError(\s -> 
---     case changeCell idCell (x, y) (fst s) of 
---         Nothing -> Left OutOfBounds
---         Just newGrid -> Right (() :!: (newGrid, snd s)))
 
 -- addCell :: MonadAut m => Variable -> Variable -> [Int] -> [Int] -> m ()            
 -- addCell var col xs ys = StateError(\s -> 
@@ -100,3 +127,16 @@ runAut :: Aut a -> UI (Either Error a)
 runAut m = fmap fst <$> runAut' m
 
 
+changeCell :: CellId -> Pos -> GridData -> Maybe GridData
+changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 then
+                                Nothing
+                            else
+                                let gr = grid g
+                                    upper = V.take (y-1) gr
+                                    lower = V.drop x gr
+                                    middleRow = gr V.! y
+                                    left = V.take (x-1) middleRow
+                                    right = V.drop x middleRow
+                                    m = V.singleton id
+                                    newMiddleRow = V.singleton (left V.++ m V.++ right)
+                                in Just g {grid = upper V.++ newMiddleRow V.++ lower}

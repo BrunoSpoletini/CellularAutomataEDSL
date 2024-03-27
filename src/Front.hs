@@ -31,6 +31,7 @@ canvasSize = 500 :: Double
 
 setupFront :: Window -> Aut ()
 setupFront window = do
+    
     liftUI $ UI.addStyleSheet window "foundation-5.css"
     liftUI $ UI.addStyleSheet window "grid.css"
     
@@ -59,14 +60,25 @@ setupFront window = do
     --     --         element debug # set text ("DEBUG: " ++ show cellId)
     --     drawSquare canvas x y cellSize "Red"
 
+    -- updateCell (1,1) 2
+    -- updateCell (2,1) 2
+    -- updateCell (1,2) 2
+    -- updateCell (2,2) 2
+    setState $ initState2 (420)
+
     onAut UI.mousedown canvas $ \(x, y) -> do
-        grid <- getGrid
+        
         posC <- liftUI $ getIndex canvas x y cellSize
         cellId <- checkCell posC
+        updateCell posC (cellId+1)
+
+        g <- getGrid
+        liftIO $ putStrLn $ printGrid g
+
         liftUI $ element debug # set text ("DEBUG: " ++ show cellId)
-        liftUI $ drawSquare canvas x y cellSize "Red"
+        -- liftUI $ drawSquare canvas x y cellSize "Red"
 
-
+    setState $ initState2 (425)
 --on :: (element -> Event a) -> element -> (a -> UI void) -> UI ()
 
     return ()

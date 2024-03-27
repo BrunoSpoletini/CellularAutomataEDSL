@@ -41,19 +41,10 @@ onEventAut e h = do
     --         case mode of
     --             FlushOften -> JS.flushCallBuffer w
     --             _          -> return ()
+
+
     unregister <- liftIO $ register e (void . (liftIO . (runUI window . getUIAut) . h))
     return (liftIO unregister)
-
--- newtype UI a = UI { unUI :: Monad.RWST Window [IO ()] () IO a }
---     deriving (Typeable)
-
--- -- runUI :: Window -> UI a -> IO a
--- runUIAut :: Window -> Aut a -> IO a
--- runUIAut window m = do
---     (a, _, actions) <- Monad.runRWST (unUI $ getUIAut m) window ()
---     --sequence_ actions
---     return a
-
 
 getUIAut :: Aut a -> UI a
 getUIAut m = do 
@@ -63,3 +54,11 @@ getUIAut m = do
             liftIO $ putStrLn "Error"
             liftIO $ exitWith (ExitFailure 1)
         (Right v) -> return v
+
+
+-- -- runUI :: Window -> UI a -> IO a
+-- runUIAut :: Window -> Aut a -> IO a
+-- runUIAut window m = do
+--     (a, _, actions) <- Monad.runRWST (unUI $ getUIAut m) window ()
+--     --sequence_ actions
+--     return a

@@ -64,19 +64,7 @@ searchCellName (gData, []) var = Nothing
 searchCellName (gData, c:cl) var =   if name c == var then Just c 
                                             else searchCellName (gData, cl) var
 
-changeCell :: CellId -> Pos -> GridData -> Maybe GridData
-changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 then
-                                Nothing
-                            else
-                                let gr = grid g
-                                    upper = V.take (y-1) gr
-                                    lower = V.drop x gr
-                                    middleRow = gr V.! y
-                                    left = V.take (x-1) middleRow
-                                    right = V.drop x middleRow
-                                    m = V.singleton id
-                                    newMiddleRow = V.singleton (left V.++ m V.++ right)
-                                in Just g {grid = upper V.++ newMiddleRow V.++ lower}
+
 
 createCell :: [CellData] -> Variable -> Variable -> [Int] -> [Int] -> CellData
 createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1, 

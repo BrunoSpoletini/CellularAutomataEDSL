@@ -47,8 +47,12 @@ main = do   putStrLn "test"
 
 setup :: Window -> UI ()
 setup window = do 
-    checkRun $ setupFront window
-
+    
+    checkRun $ do setState $ initState2 (430)
+                  setupFront window
+                  updateCell (0,0) 1000
+                  g <- getGrid
+                  liftIO $ putStrLn $ printGrid g
 
 -- main :: UI ()
 -- main = checkRun $ runInputT defaultSettings main'

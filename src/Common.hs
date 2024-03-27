@@ -67,11 +67,15 @@ module Common where
                                         colour = "grey", 
                                         bornL = [], 
                                         surviveL  = [] }
-                        grid = GridData { height = 100,
-                                        width = 100,
-                                        grid = V.fromList (replicate 100 (V.fromList (replicate 100 47))),
+                        grid = GridData { height = 20,
+                                        width = 20,
+                                        grid = V.fromList (replicate 20 (V.fromList (replicate 20 0))),
                                         limits = [0,0,0,0] }
                     in State { cellList = [deadCell], gridData = grid }
-                    
+
     checkGrid :: Pos -> Grid -> CellId
     checkGrid (x, y) g = (g V.! y) V.! x
+
+
+    printGrid :: Grid -> String
+    printGrid g = V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "\n") "" g
