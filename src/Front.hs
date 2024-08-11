@@ -17,7 +17,7 @@ import Automata
 import MonadAut
 import Control.Applicative.Lift (unLift)
 
-import Control.Monad.Except ( MonadTrans(lift) )
+-- import Control.Monad.Except ( MonadTrans(lift) ) -- no se pq no anda pero en main si
 
 --import ThreePennyAut
 import ThreePennyAutEvent
