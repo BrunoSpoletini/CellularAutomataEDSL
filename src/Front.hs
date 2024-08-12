@@ -29,30 +29,32 @@ canvasSize = 500 :: Double
 -- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 
-setupFront :: Window -> Aut ()
+setupFront :: Window -> UI ()
 setupFront window = do
     
-    liftUI $ UI.addStyleSheet window "foundation-5.css"
-    liftUI $ UI.addStyleSheet window "grid.css"
+    UI.addStyleSheet window "foundation-5.css"
+    UI.addStyleSheet window "grid.css"
     
-    liftUI $ return window # set UI.title "Cellular Automata"
+    return window # set UI.title "Cellular Automata"
     
-    (canvas, debug, display ) <- liftUI $ automataDisplay window
-    liftUI $ getBody window #+ [ display ]
+    (canvas, debug, display ) <- automataDisplay window
+    getBody window #+ [ display ]
+
+    --autBehaviour <- accumB initState2(430) (updateCell (1,1) 2)
 
     -- cellId <- checkCell (0,0)
-    -- liftUI $ element debug # set text ("DEBUG: " ++ show cellId)
+    -- element debug # set text ("DEBUG: " ++ show cellId)
 
     -- grid <- getGrid
 
-    -- liftUI $ on UI.mousedown canvas $ \(x, y) -> do
+    -- on UI.mousedown canvas $ \(x, y) -> do
     --     posC <- getIndex canvas x y cellSize
     --     let cellId = checkGrid posC grid
     --         in do 
     --             element debug # set text ("DEBUG: " ++ show cellId)
     --             drawSquare canvas x y cellSize "Red"
                 
-    -- liftUI $ on UI.mousedown canvas $ \(x, y) -> do
+    -- on UI.mousedown canvas $ \(x, y) -> do
     --     posC <- getIndex canvas x y cellSize
     --     --grid <- unLift getGrid
     --     -- let cellId = checkGrid posC grid
@@ -64,21 +66,21 @@ setupFront window = do
     -- updateCell (2,1) 2
     -- updateCell (1,2) 2
     -- updateCell (2,2) 2
-    setState $ initState2 (420)
+    -- setState $ initState2 (420)
 
-    onAut UI.mousedown canvas $ \(x, y) -> do
+    -- onAut UI.mousedown canvas $ \(x, y) -> do
         
-        posC <- liftUI $ getIndex canvas x y cellSize
-        cellId <- checkCell posC
-        updateCell posC (cellId+1)
+    --     posC <- getIndex canvas x y cellSize
+    --     cellId <- checkCell posC
+    --     --updateCell posC (cellId+1)
 
-        g <- getGrid
-        liftIO $ putStrLn $ printGrid g
+    --     g <- getGrid
+    --     liftIO $ putStrLn $ printGrid g
 
-        liftUI $ element debug # set text ("DEBUG: " ++ show cellId)
-        -- liftUI $ drawSquare canvas x y cellSize "Red"
+    --     element debug # set text ("DEBUG: " ++ show cellId)
+    --     -- drawSquare canvas x y cellSize "Red"
 
-    setState $ initState2 (425)
+    -- setState $ initState2 (425)
 --on :: (element -> Event a) -> element -> (a -> UI void) -> UI ()
 
     return ()
@@ -110,6 +112,7 @@ automataDisplay window = do
         -- case runStateError (checkGrid posC) env of
         --     Left err -> throwError canvas canvasContainer
         --     Right (cellId :!: env) -> element debug # set text ("DEBUG: " ++ show cellId)
+        
         drawSquare canvas x y cellSize "Red"
 
     return (canvas, debug, UI.div #. "page-container" #+

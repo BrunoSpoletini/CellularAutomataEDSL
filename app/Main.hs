@@ -37,38 +37,46 @@ import System.Exit ( exitWith, ExitCode(ExitFailure) )
 --- Interpreter
 ---------------------
 
-
-
-main :: IO ()
-main = do   putStrLn "test"
-            --checkRun 
-            startGUI defaultConfig { jsStatic = Just "." } setup
-            return ()
-
-setup :: Window -> UI ()
-setup window = do 
-    
-    checkRun $ do setState $ initState2 (430)
-                  setupFront window
-                  updateCell (0,0) 1000
-                  g <- getGrid
-                  liftIO $ putStrLn $ printGrid g
-
--- main :: UI ()
--- main = checkRun $ runInputT defaultSettings main'
-
 iname, iprompt :: String
 iname = "Autómatas Celulares"
 iprompt = "ST> "
 
 
-checkRun :: Aut a -> UI a
+-- main :: IO ()
+-- main = do   putStrLn "testing"
+--             startGUI defaultConfig { jsStatic = Just "." } setup
+--             return ()
+
+
+main :: IO ()
+main = do   putStrLn "testing"
+
+            aut <- setState $ initState2 (430)
+            checkRun aut
+            return ()
+            -- let aut = do    setState $ initState2 (430)
+            --                 updateCell (3,3) 1000
+            --                 res <- checkRun aut
+            --                 g <- getGrid
+            --                 liftIO $ putStrLn $ printGrid g
+            -- in aut
+            
+
+setup :: Window -> UI ()
+setup window = do --setState $ initState2 (430)
+                  setupFront window
+                  --updateCell (0,0) 1000
+                  --g <- getGrid
+                  --liftIO $ putStrLn $ printGrid g
+
+
+checkRun :: Aut a -> IO a
 checkRun m = do 
     res <- runAut m
     case res of
         (Left err) -> do
-            liftIO $ putStrLn "Error"
-            liftIO $ exitWith (ExitFailure 1)
+            putStrLn "Error"
+            exitWith (ExitFailure 1)
         (Right v) -> return v
 
 -- main' :: (MonadAut m, MonadMask m) => InputT m () -- is mask needed?
