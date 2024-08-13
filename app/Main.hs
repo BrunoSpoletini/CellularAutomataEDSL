@@ -17,11 +17,18 @@ import           System.IO               hiding ( print )
 -- import           Text.PrettyPrint.HughesPJ      ( render
 --                                                 , text
 --                                                 )
+import Control.Monad.State hiding (State)
+import Control.Monad.Except
+
+import Data.Strict.Tuple hiding (fst, snd)
+
 import Data.IORef
 
-import           Graphics.UI.Threepenny      as UI hiding (map)
+import System.Exit
+
+import           Graphics.UI.Threepenny      as UI hiding (map, grid)
 import           Graphics.UI.Threepenny.Canvas as Canvas
-import           Graphics.UI.Threepenny.Core
+import           Graphics.UI.Threepenny.Core hiding (grid)
 
 import           Front
 import           Common
@@ -47,6 +54,25 @@ setup window = do setupFront window
 
 main :: IO ()
 main  = startCA
+
+-- main :: IO ()
+-- main  = let 
+--             t = eval (UpdateCell (4,4) "black") initEnv
+--         in case t of 
+--             Left err -> putStrLn "Error"
+--             Right (s) -> putStrLn $ printGrid s
+
+
+
+
+                
+
+                
+checkRun :: StateError () -> IO Env
+checkRun m =    let e = runStateError m initEnv 
+                in case e of
+                    (Left err) -> exitWith (ExitFailure 1)
+                    (Right (v :!: s)) -> return s
 
 
 iname, iprompt :: String

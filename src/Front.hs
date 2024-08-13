@@ -53,14 +53,20 @@ setupFront window = void $ do
             ]
         ]
 
-
-
-
     let
-        action :: Event Comm
-        action = (\pos -> UpdateCell pos "2") <$> (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$> UI.mousedown canvas
+        clickClear :: Event Comm
+        clickClear = const (UpdateCell (0,0) "dead") <$> UI.click clear
 
-        commands = fmap evalUp action
+        clickCanvas :: Event Comm
+        clickCanvas =   (\pos -> UpdateCell pos "black") <$>
+                        (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
+                        UI.mousedown canvas
+
+        interactions :: Event Comm
+        interactions = UI.unionWith const clickClear clickCanvas
+
+        commands :: Event (Either Error Env -> Either Error Env)    
+        commands = fmap evalUp interactions
 
     calcBehaviour <- accumB (Right initEnv) commands
 
@@ -69,78 +75,10 @@ setupFront window = void $ do
                         Right env -> printGrid env
         res = fmap open calcBehaviour
                         
-
-
-
-
         
 
     element debug # sink text res
 
-    on UI.mousedown test $ \(x, y) -> do
-        element debug # set text ( "holas" )
-
--- automataDisplay :: Window -> UI Element
--- automataDisplay window = do
---     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
-    
---     -- DEBUG
---     (wrap, debugWrap, out, debug) <- debugUI canvas
-    
---     -- Buttons
---     clear    <- clearButton canvas
---     test     <- UI.button #+ [string "Test"]
-
---     -- env <- liftIO $ newIORef initEnv
---     -- selectedCell <- liftIO $ newIORef initEnv
---     --case runStateError (addCell var col xs ys) 
-
---     --let 
---         -- actions =   let (x, y) = UI.mousedown canvas
---         --             in  UI.pure UpdateCell (x, y)
-
---         --commands = fmap eval actions
-
-
-
---         -- on UI.mousedown canvas $ \(x, y) -> do
---         --     posC <- getIndex canvas x y cellSize
---         --     drawSquare canvas x y cellSize "Red"
-
---   -- define page DOM with 3penny html combinators
-
-
-
---     UI.div #. "page-container" #+
---         [
---             UI.div #. "header"#+
---                 [element wrap, element debugWrap],
---             UI.div #. "menu"#+
---                 --[
---                     --UI.div #. "row"#+
---                         [element clear, element test],
---                 --],
---             UI.div #. "main"#+
---                 [element canvasContainer],
---             UI.div #. "right",
---             UI.div #. "footer"
---         ]
-
---     let --action :: Event Comm
-
---         action = (\pos -> UpdateCell pos "2") <$> (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$> UI.mousedown canvas
-              
---         commands = fmap evalUp action
-
---     calcBehaviour <- accumB (Right initEnv) commands
-
---     let open st = case st of
---                         Left err -> "Error"
---                         Right env -> printGrid env
---         res = fmap open calcBehaviour
-                        
-
---     element debug # sink value res
 
 
 
@@ -171,7 +109,7 @@ debugUI canvas =  do   -- Mouse
                     -- DEBUG
                 debug  <- UI.span # set text "DEBUG: "
                 debugWrap <- UI.div #. "wrap"
-                    # set style [("width","300px"),("height","100px"),("border","solid black 1px")]
+                    # set style [("width","500px"),("height","100px"),("border","solid black 1px")]
                     # set (attr "tabindex") "1" -- allow key presses
                     #+ [element debug]
                 return (wrap, debugWrap, out, debug)

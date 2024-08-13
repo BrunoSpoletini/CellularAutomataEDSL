@@ -15,7 +15,7 @@ import qualified Data.Vector as V
 -- type Env = (GridData, [CellData]) -- declared in common
 
 cellSize = 25 :: Double
-canvasSize = 500 :: Double
+canvasSize = 125 :: Double
 
 -- Null enviroment
 initEnv :: Env
@@ -30,8 +30,8 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                               colour = "black", 
                               bornL = [], 
                               surviveL  = [] }    
-                gridD = GridData { height = 100,
-                                width = 100,
+                gridD = GridData { height = size, -- to be changed
+                                width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 5))),
                                 limits = [0,0,0,0] }
             in (gridD, [deadCell, blackCell])
@@ -121,11 +121,11 @@ changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 the
                                 Nothing
                             else
                                 let gr = grid g
-                                    upper = V.take (y-1) gr
-                                    lower = V.drop x gr
+                                    upper = V.take y gr
+                                    lower = V.drop (y+1) gr
                                     middleRow = gr V.! y
-                                    left = V.take (x-1) middleRow
-                                    right = V.drop x middleRow
+                                    left = V.take x middleRow
+                                    right = V.drop (x+1) middleRow
                                     m = V.singleton id
                                     newMiddleRow = V.singleton (left V.++ m V.++ right)
                                 in Just g {grid = upper V.++ newMiddleRow V.++ lower}
@@ -139,4 +139,4 @@ createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1,
 
 printGrid :: Env -> String
 printGrid (gData, cList) = let g = grid gData
-                in V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "\n") "" g
+                in V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "-\n") "" g
