@@ -36,15 +36,17 @@ module Common where
                                 grid :: Grid,
                                 limits :: [Int]
                                 }
+        deriving (Show)
 
     type Pos = (Int, Int)
 
     data Comm = UpdateCell Pos Variable 
                 | Step 
-                | CheckC Pos 
+                | CheckC Pos --pending
                 | DefCell Variable Variable [Int] [Int]
+                | Restart Env -- UI shortcut
         deriving (Show)
-        
+
     data Error = UndefCell | OutOfBounds | NameInUse
         deriving (Eq, Show)
 

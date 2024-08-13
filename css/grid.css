@@ -31,7 +31,7 @@ font-size: 30px;
     border: 1px solid black;
     background: rgb(200, 200, 200);
     position: relative;
-    /* margin: 20px; */
+    margin: 20px;
 }
 
 .static-canvas{

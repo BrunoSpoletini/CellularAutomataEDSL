@@ -17,6 +17,10 @@ class Monad m => MonadState m where
     -- Adds a cell to the state
     addCell :: Variable -> Variable -> [Int] -> [Int] -> m ()
 
+    -- Sets an enviroment
+    setEnv :: Env -> m ()
+
+
 -- Class for representing monads that can throw errors
 class Monad m => MonadError m where
     -- Throws error

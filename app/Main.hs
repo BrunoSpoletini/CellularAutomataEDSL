@@ -63,11 +63,6 @@ main  = startCA
 --             Right (s) -> putStrLn $ printGrid s
 
 
-
-
-                
-
-                
 checkRun :: StateError () -> IO Env
 checkRun m =    let e = runStateError m initEnv 
                 in case e of

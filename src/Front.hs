@@ -34,7 +34,7 @@ setupFront window = void $ do
     (wrap, debugWrap, out, debug) <- debugUI canvas
     
     -- Buttons
-    clear    <- clearButton canvas
+    reset    <- resetButton canvas
     test     <- UI.button #+ [string "Test"]
 
     body <- UI.div #. "page-container" #+
@@ -44,7 +44,7 @@ setupFront window = void $ do
                     UI.div #. "menu"#+
                         --[
                             --UI.div #. "row"#+
-                                [element clear, element test],
+                                [element reset, element test],
                         --],
                     UI.div #. "main"#+
                         [element canvasContainer],
@@ -55,8 +55,8 @@ setupFront window = void $ do
     getBody window #+ [ pure body ]
 
     let
-        clickClear :: Event Comm
-        clickClear = const (UpdateCell (0,0) "dead") <$> UI.click clear
+        clickReset :: Event Comm
+        clickReset = const (Restart initEnv) <$> UI.click reset
 
         clickCanvas :: Event Comm
         clickCanvas =   (\pos -> UpdateCell pos "black") <$>
@@ -64,7 +64,7 @@ setupFront window = void $ do
                         UI.mousedown canvas
 
         interactions :: Event Comm
-        interactions = UI.unionWith const clickClear clickCanvas
+        interactions = UI.unionWith const clickReset clickCanvas
 
         commands :: Event (Either Error Env -> Either Error Env)    
         commands = fmap evalUp interactions
@@ -118,10 +118,7 @@ detectError = mkWriteAttr $ \error body -> do
     else
         return ()
 
--- drawnPoints :: WriteAttr Canvas (Either Error Env)
--- drawnPoints = mkWriteAttr $ \canvas calc -> do
---     UI.clearCanvas canvas
---     -- Draw the points here
+
 
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
@@ -165,17 +162,15 @@ drawSquare canvas x y size colour =
 
 getIndex :: Canvas -> Double -> Double -> Double -> Pos
 getIndex canvas x y size = 
-    let newX =  floor(x/cellSize)
-        newY =  floor(y/cellSize)
+    let newX =  floor(abs(x)/cellSize)
+        newY =  floor(abs(y)/cellSize)
     in (newX, newY)
 
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
-clearButton :: Element -> UI Element
-clearButton canvas =    do  button <- UI.button #+ [string "Clear"]
-                            --on UI.click button $ const $
-                                --canvas # UI.clearCanvas DEPRECATED
+resetButton :: Element -> UI Element
+resetButton canvas =    do  button <- UI.button #+ [string "Reset"]
                             return button
 
 -- Draw the whole canvas

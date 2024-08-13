@@ -84,6 +84,8 @@ instance MonadState StateError where
             Right x -> Left NameInUse
         )
 
+    setEnv env = StateError(\s -> Right (() :!: env))
+
 checkCell :: Pos -> Env -> String
 checkCell pos env = case runStateError (checkGrid pos) env of
                       Left err -> "Error: " ++ show err
@@ -115,7 +117,7 @@ processComm :: (MonadState m, MonadError m) => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
-
+processComm (Restart env) = setEnv env
 
 searchCellId :: Env -> CellId -> Maybe CellData
 searchCellId (gData, []) idCell = Nothing
