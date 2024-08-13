@@ -16,24 +16,17 @@ import Common
 import Automata
 import Monads
 
-cellSize = 25 :: Double
-canvasSize = 500 :: Double
-
 -- startCA :: IO ()
 -- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 
 setupFront :: Window -> UI ()
-setupFront env window = do
+setupFront window = void $ do
     UI.addStyleSheet window "foundation-5.css"
     UI.addStyleSheet window "grid.css"
     return window # set UI.title "Cellular Automata"
-    getBody window #+ [ automataDisplay window ]
-    return ()
 
 
-automataDisplay :: Window -> UI Element
-automataDisplay window = do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
     
     -- DEBUG
@@ -43,33 +36,114 @@ automataDisplay window = do
     clear    <- clearButton canvas
     test     <- UI.button #+ [string "Test"]
 
-    env <- liftIO $ newIORef initEnv
-    selectedCell <- liftIO $ newIORef initEnv
-    --case runStateError (addCell var col xs ys) 
-
-
-    on UI.mousedown canvas $ \(x, y) -> do
-        posC <- getIndex canvas x y cellSize
-        env <- liftIO $ readIORef env
-        case runStateError (checkGrid posC) env of
-            Left err -> throwError canvas canvasContainer
-            Right (cellId :!: env) -> element debug # set text ("DEBUG: " ++ show cellId)
-        drawSquare canvas x y cellSize "Red"
-
-    UI.div #. "page-container" #+
-        [
-            UI.div #. "header"#+
-                [element wrap, element debugWrap],
-            UI.div #. "menu"#+
-                --[
-                    --UI.div #. "row"#+
-                        [element clear, element test],
-                --],
-            UI.div #. "main"#+
-                [element canvasContainer],
-            UI.div #. "right",
-            UI.div #. "footer"
+    getBody window #+ [  
+        UI.div #. "page-container" #+
+            [
+                UI.div #. "header"#+
+                    [element wrap, element debugWrap],
+                UI.div #. "menu"#+
+                    --[
+                        --UI.div #. "row"#+
+                            [element clear, element test],
+                    --],
+                UI.div #. "main"#+
+                    [element canvasContainer],
+                UI.div #. "right",
+                UI.div #. "footer"
+            ]
         ]
+
+
+
+
+    let
+        action :: Event Comm
+        action = (\pos -> UpdateCell pos "2") <$> (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$> UI.mousedown canvas
+
+        commands = fmap evalUp action
+
+    calcBehaviour <- accumB (Right initEnv) commands
+
+    let open st = case st of
+                        Left err -> show err
+                        Right env -> printGrid env
+        res = fmap open calcBehaviour
+                        
+
+
+
+
+        
+
+    element debug # sink text res
+
+    on UI.mousedown test $ \(x, y) -> do
+        element debug # set text ( "holas" )
+
+-- automataDisplay :: Window -> UI Element
+-- automataDisplay window = do
+--     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
+    
+--     -- DEBUG
+--     (wrap, debugWrap, out, debug) <- debugUI canvas
+    
+--     -- Buttons
+--     clear    <- clearButton canvas
+--     test     <- UI.button #+ [string "Test"]
+
+--     -- env <- liftIO $ newIORef initEnv
+--     -- selectedCell <- liftIO $ newIORef initEnv
+--     --case runStateError (addCell var col xs ys) 
+
+--     --let 
+--         -- actions =   let (x, y) = UI.mousedown canvas
+--         --             in  UI.pure UpdateCell (x, y)
+
+--         --commands = fmap eval actions
+
+
+
+--         -- on UI.mousedown canvas $ \(x, y) -> do
+--         --     posC <- getIndex canvas x y cellSize
+--         --     drawSquare canvas x y cellSize "Red"
+
+--   -- define page DOM with 3penny html combinators
+
+
+
+--     UI.div #. "page-container" #+
+--         [
+--             UI.div #. "header"#+
+--                 [element wrap, element debugWrap],
+--             UI.div #. "menu"#+
+--                 --[
+--                     --UI.div #. "row"#+
+--                         [element clear, element test],
+--                 --],
+--             UI.div #. "main"#+
+--                 [element canvasContainer],
+--             UI.div #. "right",
+--             UI.div #. "footer"
+--         ]
+
+--     let --action :: Event Comm
+
+--         action = (\pos -> UpdateCell pos "2") <$> (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$> UI.mousedown canvas
+              
+--         commands = fmap evalUp action
+
+--     calcBehaviour <- accumB (Right initEnv) commands
+
+--     let open st = case st of
+--                         Left err -> "Error"
+--                         Right env -> printGrid env
+--         res = fmap open calcBehaviour
+                        
+
+--     element debug # sink value res
+
+
+
 
 
 throwError :: Element -> Element -> UI Element
@@ -112,11 +186,11 @@ drawSquare canvas x y size colour =
     in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
             canvas # UI.fillRect (newX,newY) (size-2) (size-2)
 
-getIndex :: Canvas -> Double -> Double -> Double -> UI Pos
+getIndex :: Canvas -> Double -> Double -> Double -> Pos
 getIndex canvas x y size = 
     let newX =  floor(x/cellSize)
         newY =  floor(y/cellSize)
-    in  return (newX, newY)
+    in (newX, newY)
 
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)

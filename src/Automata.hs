@@ -14,18 +14,29 @@ import qualified Data.Vector as V
 -- Enviroments
 -- type Env = (GridData, [CellData]) -- declared in common
 
+cellSize = 25 :: Double
+canvasSize = 500 :: Double
+
 -- Null enviroment
 initEnv :: Env
-initEnv = let deadCell = CellData { cId = 0, 
+initEnv   = let size =  floor(canvasSize/cellSize)
+                deadCell = CellData { cId = 0, 
                                     name = "dead", 
                                     colour = "grey", 
                                     bornL = [], 
                                     surviveL  = [] }
-              grid = GridData { height = 100,
+                blackCell = CellData { cId = 1, 
+                              name = "black", 
+                              colour = "black", 
+                              bornL = [], 
+                              surviveL  = [] }    
+                gridD = GridData { height = 100,
                                 width = 100,
-                                grid = V.fromList (replicate 100 (V.fromList (replicate 100 0))),
+                                grid = V.fromList (replicate size (V.fromList (replicate size 5))),
                                 limits = [0,0,0,0] }
-            in (grid, [deadCell])
+            in (gridD, [deadCell, blackCell])
+
+
 
 -- State Monad with Error Handler
 newtype StateError a =
@@ -36,11 +47,11 @@ instance Functor StateError where
   fmap = liftM
 
 instance Applicative StateError where
-  pure  = return
+  pure  = pure
   (<*>) = ap
 
 instance Monad StateError where
-  return x = StateError (\s -> Right (x :!: s))
+  --return x = StateError (\s -> Right (x :!: s))
   m >>= f = StateError (\s ->   let e = runStateError m s 
                                 in case e of
                                     (Left err) -> Left err
@@ -79,6 +90,11 @@ checkCell pos env = case runStateError (checkGrid pos) env of
                       Right (cellId :!: env) -> show cellId
 
 
+-- Fix to consider initial state as an error, and allow FRP Threepenny to work
+evalUp :: Comm -> Either Error Env -> Either Error Env
+evalUp c (Left err) = Left err
+evalUp c (Right env) = eval c env
+
 eval :: Comm -> Env -> Either Error Env
 eval c env =  case runStateError (processComm c) env of
                   (Left err) -> Left err
@@ -88,7 +104,7 @@ processComm :: (MonadState m, MonadError m) => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
--- processComm Step = 
+
 
 searchCellId :: Env -> CellId -> Maybe CellData
 searchCellId (gData, []) idCell = Nothing
@@ -120,3 +136,7 @@ createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1,
                                             colour = col, 
                                             bornL = xs, 
                                             surviveL  = ys }
+
+printGrid :: Env -> String
+printGrid (gData, cList) = let g = grid gData
+                in V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "\n") "" g

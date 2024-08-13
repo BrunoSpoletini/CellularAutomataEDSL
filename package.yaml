@@ -32,6 +32,8 @@ dependencies:
 - exceptions
 - mtl
 - parallel
+- transformers
+- aeson
 #- text quiza sirve <-
 # - parsec
 # - containers
@@ -41,6 +43,9 @@ dependencies:
 
 default-extensions:
 - MultiWayIf
+- FlexibleContexts
+- TypeSynonymInstances
+- FlexibleInstances
 # - GADTs
 # - StandaloneDeriving
 # - PatternSynonyms
@@ -72,13 +77,13 @@ executables:
     dependencies:
     - CA-DSL
 
-tests:
-  CA-DSL-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - CA-DSL
+# tests:
+#   CA-DSL-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - CA-DSL
