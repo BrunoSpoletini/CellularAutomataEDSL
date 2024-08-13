@@ -7,10 +7,11 @@ import Data.Strict.Tuple hiding (fst, snd)
 
 import           System.Console.Haskeline -- DEBUG
 
-import           Graphics.UI.Threepenny      as UI
+import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Canvas as Canvas
-import           Graphics.UI.Threepenny.Core
+import           Graphics.UI.Threepenny.Core hiding (grid)
 --import Distribution.Compat.Prelude
+import qualified Data.Vector as V
 
 import Common
 import Automata
@@ -36,22 +37,22 @@ setupFront window = void $ do
     clear    <- clearButton canvas
     test     <- UI.button #+ [string "Test"]
 
-    getBody window #+ [  
-        UI.div #. "page-container" #+
-            [
-                UI.div #. "header"#+
-                    [element wrap, element debugWrap],
-                UI.div #. "menu"#+
-                    --[
-                        --UI.div #. "row"#+
-                            [element clear, element test],
-                    --],
-                UI.div #. "main"#+
-                    [element canvasContainer],
-                UI.div #. "right",
-                UI.div #. "footer"
-            ]
-        ]
+    body <- UI.div #. "page-container" #+
+                [
+                    UI.div #. "header"#+
+                        [element wrap, element debugWrap],
+                    UI.div #. "menu"#+
+                        --[
+                            --UI.div #. "row"#+
+                                [element clear, element test],
+                        --],
+                    UI.div #. "main"#+
+                        [element canvasContainer],
+                    UI.div #. "right",
+                    UI.div #. "footer"
+                ]
+
+    getBody window #+ [ pure body ]
 
     let
         clickClear :: Event Comm
@@ -69,20 +70,58 @@ setupFront window = void $ do
         commands = fmap evalUp interactions
 
     calcBehaviour <- accumB (Right initEnv) commands
+    -- calcBehaviour :: Behavior (Either Error Env)
 
-    let open st = case st of
-                        Left err -> show err
-                        Right env -> printGrid env
-        res = fmap open calcBehaviour
-                        
-        
+    let res = fmap (\x -> case x of
+                            Left err -> show err
+                            Right env -> printGrid env) calcBehaviour
+        errorB = fmap (\x -> case x of
+                            Left err -> True
+                            Right env -> False) calcBehaviour
+
+    --element test # sink UI.enabled (not <$> errorB)
+
+    element body # sink detectError errorB
 
     element debug # sink text res
 
+    element canvas # sink updateCanvas calcBehaviour
 
 
+updateCanvas :: WriteAttr Element (Either Error Env)
+updateCanvas = mkWriteAttr $ \either canvas -> 
+    case either of
+        Left err -> return ()
+        Right env -> do
+            let gridD = fst env
+                cells = snd env
+                autGrid = grid gridD
+            canvas # UI.clearCanvas
+            forM_ [0..(height gridD)-1] $ \y -> do
+                forM_ [0..(width gridD)-1] $ \x -> do
+                    let cellId = (autGrid V.! y) V.! x
+                        cell = searchCellId env cellId
+                    case cell of
+                        Nothing -> return ()
+                        Just c -> do
+                            let color = colour c
+                            drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
+            return ()
 
+detectError :: WriteAttr Element Bool
+detectError = mkWriteAttr $ \error body -> do
+    if error then
+        do  element body # set style [("pointer-events","none")]
+            element body # set style [("cursor", "not-allowed"), 
+                                      ("border", "5px solid red")]
+            return ()
+    else
+        return ()
 
+-- drawnPoints :: WriteAttr Canvas (Either Error Env)
+-- drawnPoints = mkWriteAttr $ \canvas calc -> do
+--     UI.clearCanvas canvas
+--     -- Draw the points here
 
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
@@ -135,8 +174,8 @@ fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
 clearButton :: Element -> UI Element
 clearButton canvas =    do  button <- UI.button #+ [string "Clear"]
-                            on UI.click button $ const $
-                                canvas # UI.clearCanvas
+                            --on UI.click button $ const $
+                                --canvas # UI.clearCanvas DEPRECATED
                             return button
 
 -- Draw the whole canvas

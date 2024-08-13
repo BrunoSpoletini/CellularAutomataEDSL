@@ -100,6 +100,17 @@ eval c env =  case runStateError (processComm c) env of
                   (Left err) -> Left err
                   (Right (v :!: s)) -> Right s
 
+
+-- evalUpRes :: Comm -> Either Error a -> Either Error a
+-- evalUpRes c (Left err) = Left err
+-- evalUpRes c (Right (v :!: s)) = evalRes c s
+
+
+-- evalRes :: Comm -> Env -> Either Error a
+-- evalRes c env =  case runStateError (processComm c) env of
+--                   (Left err) -> Left err
+--                   (Right (v :!: s)) -> Right (v :!: s)
+
 processComm :: (MonadState m, MonadError m) => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
