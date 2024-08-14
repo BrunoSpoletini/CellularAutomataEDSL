@@ -4,7 +4,7 @@ module Front
 import Data.Char (toUpper, toLower)
 import Data.IORef
 import Control.Monad
-import Data.Strict.Tuple hiding (fst, snd, zip) 
+import Data.Strict.Tuple hiding (fst, snd, zip)
 
 --import           System.Console.Haskeline -- DEBUG
 
@@ -29,27 +29,16 @@ setupFront window fileEnv = void $ do
     UI.addStyleSheet window "semantic.min.css"
     return window # set UI.title "Cellular Automata"
 
-
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
-    
+
     cellButtL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
+
     cellSel <- UI.div #. "ui vertical menu"
-                      #+ (  map pure cellButtL )
-
-    -- Select behaviour
-    forM_ cellButtL $ \cellDiv ->
-        on UI.click cellDiv $ const $ do
-            forM_ (cellButtL) $ \cell -> 
-                element cell # set (attr "class") "item"
-            element cellDiv # set (attr "class") "item active"
-
-
-
-
+                      #+ (  map element cellButtL )
 
     -- DEBUG
     (wrap, debugWrap, out, debug) <- debugUI canvas
-    
+
     -- Buttons
     reset    <- resetButton canvas
     test     <- UI.button   #. "ui blue button"
@@ -60,10 +49,7 @@ setupFront window fileEnv = void $ do
                     UI.div #. "header"#+
                         [element wrap, element debugWrap],
                     UI.div #. "menu"#+
-                        --[
-                            --UI.div #. "row"#+
-                                [element reset, element test],
-                        --],
+                        [element reset, element test],
                     UI.div #. "main"#+
                         [element canvasContainer],
                     UI.div #. "right"#+
@@ -82,7 +68,6 @@ setupFront window fileEnv = void $ do
                         (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
                         UI.mousedown canvas
 
-        -- cellButtL :: [Element]
         cellComm ::  [(Element, Comm)]
         cellComm = zip cellButtL (map (\cell -> Select (cId cell)) (fst $ snd fileEnv))
 
@@ -91,25 +76,13 @@ setupFront window fileEnv = void $ do
                     where
                         makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
 
-        -- selectCell :: Event Comm
-        -- selectCell =  (\cell -> Select (cId cell)) <$>
-        --                 (\cell -> searchCellId fileEnv (cId cell)) <$>
-        --                 UI.click cellSel 
-            
-            --(\pos -> SelectCell pos) <$>
-        --                 (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
-        --                 UI.click cellSel
-
-
-
         interactions :: Event Comm
         interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell]
 
-        commands :: Event (Either Error Env -> Either Error Env)    
+        commands :: Event (Either Error Env -> Either Error Env)
         commands = fmap evalUp interactions
 
     calcBehaviour <- accumB (Right fileEnv) commands
-    -- calcBehaviour :: Behavior (Either Error Env)
 
     let res = fmap (\x -> case x of
                             Left err -> show err
@@ -117,20 +90,9 @@ setupFront window fileEnv = void $ do
         errorB = fmap (\x -> case x of
                             Left err -> True
                             Right env -> False) calcBehaviour
-        cellStuff = fmap (\x -> case x of
-                            Left err -> snd initEnv
-                            Right env -> (snd env)) calcBehaviour
-
-        -- la idea es:
-        -- hacer una lista de boton, celula, seleccionada; y cada vez que se actualice el estado, se actualiza la lista de botones
-        ---buttonCellData = (zip (fst cellButtL) (fst $ snd fileEnv))
-        --buttonCellData :: [(Element, CellData)]
-
-        -- buttonCellData :: Behavior [(Element, (CellData, CellData))]
-        -- buttonCellData = fmap (\(celL, selC) -> zip cellButtL ( zip celL (take (length celL) (iterate id selC)))) cellStuff
-
-
-    --element test # sink UI.enabled (not <$> errorB)
+        -- cellStuff = fmap (\x -> case x of
+        --                     Left err -> snd initEnv
+        --                     Right env -> (snd env)) calcBehaviour
 
     element body # sink detectError errorB
 
@@ -139,32 +101,24 @@ setupFront window fileEnv = void $ do
     element canvas # sink updateCanvas calcBehaviour
 
 
-    -- --forM_ cellButtL $ \cell -> do
-    -- element cell # sink updateCellSelector cellStuff
-
-
-
-
--- updateCellSelector :: WriteAttr Element ([CellData], CellData)
--- updateCellSelector = mkWriteAttr $ \((x:cs), selected) button -> do
---     let nombreS = name selected
---         nombreB = value UI.text button
---         isSelected = nombreS == nombreB
-
---         item = if isSelected then "item active" else "item"
---         label = if isSelected then "ui left pointing label" else "ui label"
-
---     element button # set children []
---     element button  #. item
---                     -- #+ [
---                     --     UI.div #. label
---                     --         # set style [("background-color", color), ("min-height", "20px")]
---                     --     ]
---     return ()
-
 drawCellList :: [CellData] -> CellData -> UI [Element]
-drawCellList [] selected = return empty
-drawCellList (c:cs) selected =  do  let nombre = name c
+drawCellList cL selected =  do  cellButtPairL <- drawCellList' cL selected
+                                let
+                                     cellButtL = map fst cellButtPairL
+                                     cellButLabelL = map snd cellButtPairL
+                                -- Select behaviour
+                                forM_ cellButtPairL $ \(cellDiv, cellLab) ->
+                                    on UI.click cellDiv $ const $ do
+                                        forM_ cellButtPairL $ \(cellD, cellL) -> do
+                                            element cellD # set (attr "class") "item"
+                                            element cellL # set (attr "class") "ui label"
+                                        element cellDiv # set (attr "class") "item active"
+                                        element cellLab # set (attr "class") "ui left pointing label"
+                                return cellButtL
+
+drawCellList' :: [CellData] -> CellData -> UI [(Element, Element)]
+drawCellList' [] selected = return empty
+drawCellList' (c:cs) selected = do  let nombre = name c
                                         id = cId c
                                         itemSel = if c == selected then "item active" else "item"
                                         labelSel = if c == selected then "ui left pointing label" else "ui label"
@@ -173,26 +127,15 @@ drawCellList (c:cs) selected =  do  let nombre = name c
                                     cellDiv <- UI.a #. itemSel
                                         # set UI.text (map toUpper nombre)
                                         # set style [("font-size", "20px")]
-                                        #+ [
-                                            UI.div #. labelSel
-                                                # set style [("background-color", color), ("min-height", "20px")]
-                                            ]
+                                    cellLabel <- UI.div #. labelSel
+                                                        # set style [("background-color", color), ("min-height", "20px")]
+                                    element cellDiv #+ [element cellLabel]
 
-
-                                    -- -- on UI.click cellDiv $ const $ do
-                                    -- --      element cellDiv # set (attr "class") "item active"
-                                    --                     # set UI.text (map toUpper nombre)
-                                    --                     # set style [("font-size", "20px")]
-                                    --                     # set children []
-                                    --                     #+ [UI.div #. "ui left pointing label"
-                                    --                         # set style [("background-color", color), ("min-height", "20px")]
-                                    --                     ]
-
-                                    cellDivs <- drawCellList cs selected
-                                    return $ cellDiv : cellDivs
+                                    cellDivs <- drawCellList' cs selected
+                                    return $ (cellDiv, cellLabel) : cellDivs
 
 updateCanvas :: WriteAttr Element (Either Error Env)
-updateCanvas = mkWriteAttr $ \either canvas -> 
+updateCanvas = mkWriteAttr $ \either canvas ->
     case either of
         Left err -> return ()
         Right env -> do
@@ -200,8 +143,8 @@ updateCanvas = mkWriteAttr $ \either canvas ->
                 cells = snd env
                 autGrid = grid gridD
             canvas # UI.clearCanvas
-            forM_ [0..(height gridD)-1] $ \y -> do
-                forM_ [0..(width gridD)-1] $ \x -> do
+            forM_ [0.. height gridD-1] $ \y -> do
+                forM_ [0.. width gridD-1] $ \x -> do
                     let cellId = (autGrid V.! y) V.! x
                         cell = searchCellId env cellId
                     case cell of
@@ -209,26 +152,23 @@ updateCanvas = mkWriteAttr $ \either canvas ->
                         Just c -> do
                             let color = colour c
                             drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
-            return ()
+
 
 detectError :: WriteAttr Element Bool
 detectError = mkWriteAttr $ \error body -> do
-    if error then
-        do  element body # set style [("pointer-events","none")]
-            element body # set style [("cursor", "not-allowed"), 
-                                      ("border", "5px solid red")]
-            return ()
-    else
-        return ()
+    when error $ do  element body # set style [("pointer-events","none")]
+                     element body # set style [("cursor", "not-allowed"),
+                                               ("border", "5px solid red")]
+                     return ()
 
 
 
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
-                                    element canvasCont # set style [("cursor", "not-allowed"), 
+                                    element canvasCont # set style [("cursor", "not-allowed"),
                                                                     ("border", "2px solid red")]
 
-                                               
+
 
 debugUI :: Element -> UI ( Element, Element, Element, Element)
 debugUI canvas =  do   -- Mouse
@@ -254,16 +194,16 @@ debugUI canvas =  do   -- Mouse
 
 
 drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
-drawSquare canvas x y size colour = 
-    let newX =  fromIntegral(floor(x/cellSize)) * cellSize + 1
-        newY =  fromIntegral(floor(y/cellSize)) * cellSize + 1
+drawSquare canvas x y size colour =
+    let newX =  fromIntegral (floor (x/cellSize)) * cellSize + 1
+        newY =  fromIntegral (floor (y/cellSize)) * cellSize + 1
     in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
             canvas # UI.fillRect (newX,newY) (size-2) (size-2)
 
 getIndex :: Canvas -> Double -> Double -> Double -> Pos
-getIndex canvas x y size = 
-    let newX =  floor(abs(x)/cellSize)
-        newY =  floor(abs(y)/cellSize)
+getIndex canvas x y size =
+    let newX =  floor (abs (x)/cellSize)
+        newY =  floor (abs (y)/cellSize)
     in (newX, newY)
 
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
@@ -286,7 +226,7 @@ drawCanvas cellSize canvasSize = do
     forM_ [0,cellSize..canvasSize] $ \x -> do
         UI.moveTo (fromIntegralPoint (x, 0)) canvasBase
         UI.lineTo (fromIntegralPoint (x, canvasSize)) canvasBase
-        
+
         UI.moveTo (fromIntegralPoint (0, x)) canvasBase
         UI.lineTo (fromIntegralPoint (canvasSize, x)) canvasBase
         UI.stroke canvasBase
