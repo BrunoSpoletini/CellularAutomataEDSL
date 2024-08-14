@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use lambda-case" #-}
 module Front
     where
 
@@ -39,8 +41,15 @@ setupFront window fileEnv = void $ do
     -- DEBUG
     (wrap, debugWrap, out, debug) <- debugUI canvas
 
+    -- Console
+    console <- UI.div #. "ui segment"
+        # set style [("width", "100%"), ("height", "200px"), ("overflow-y", "scroll")]
+        # set (attr "tabindex") "1"
+        # set (attr "contenteditable") "false"
+        # set text "Historial de comandos"
+
     -- Buttons
-    reset    <- resetButton canvas
+    reset    <- resetButton console
     test     <- UI.button   #. "ui blue button"
                             #+ [string "Test"]
 
@@ -54,7 +63,8 @@ setupFront window fileEnv = void $ do
                         [element canvasContainer],
                     UI.div #. "right"#+
                         [element cellSel],
-                    UI.div #. "footer"
+                    UI.div #. "footer"#+
+                        [element console]
                 ]
 
     getBody window #+ [ pure body ]
@@ -82,7 +92,12 @@ setupFront window fileEnv = void $ do
         commands :: Event (Either Error Env -> Either Error Env)
         commands = fmap evalUp interactions
 
+        commandsArray :: Event ([UI Element] -> [UI Element])
+        commandsArray = fmap commToDiv interactions
+
     calcBehaviour <- accumB (Right fileEnv) commands
+
+    comHist <- accumB empty commandsArray
 
     let res = fmap (\x -> case x of
                             Left err -> show err
@@ -90,9 +105,6 @@ setupFront window fileEnv = void $ do
         errorB = fmap (\x -> case x of
                             Left err -> True
                             Right env -> False) calcBehaviour
-        -- cellStuff = fmap (\x -> case x of
-        --                     Left err -> snd initEnv
-        --                     Right env -> (snd env)) calcBehaviour
 
     element body # sink detectError errorB
 
@@ -100,6 +112,17 @@ setupFront window fileEnv = void $ do
 
     element canvas # sink updateCanvas calcBehaviour
 
+    element console # sink updateConsole comHist
+
+commToDiv :: Comm -> [UI Element] -> [UI Element]
+commToDiv (Restart _) xs = empty
+commToDiv x xs = (UI.div # set text (show x)):xs
+
+updateConsole :: WriteAttr Element [UI Element]
+updateConsole = mkWriteAttr $ \comHist console -> do
+    element console # set children []
+    element console #+ comHist
+    return ()
 
 drawCellList :: [CellData] -> CellData -> UI [Element]
 drawCellList cL selected =  do  cellButtPairL <- drawCellList' cL selected
@@ -210,7 +233,9 @@ fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
 resetButton :: Element -> UI Element
-resetButton canvas =    do  button <- UI.button #+ [string "Reset"]
+resetButton console =   do  button <- UI.button #+ [string "Reset"]
+                            on UI.click button $ const $ do
+                                element console # set children []
                             return button
 
 -- Draw the whole canvas

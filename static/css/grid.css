@@ -12,7 +12,7 @@ display: grid;
 grid-template-areas:
     'header header header header header header'
     'menu main main main right right'
-    'menu footer footer footer footer footer';
+    'menu footer footer footer right right';
 gap: 10px;
 background-color: #ffffff;
 padding: 10px;
