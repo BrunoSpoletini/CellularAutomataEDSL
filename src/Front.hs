@@ -1,9 +1,10 @@
 module Front
     where
 
+import Data.Char (toUpper, toLower)
 import Data.IORef
 import Control.Monad
-import Data.Strict.Tuple hiding (fst, snd) 
+import Data.Strict.Tuple hiding (fst, snd, zip) 
 
 import           System.Console.Haskeline -- DEBUG
 
@@ -21,21 +22,27 @@ import Monads
 -- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
 
 
-setupFront :: Window -> UI ()
-setupFront window = void $ do
-    UI.addStyleSheet window "foundation-5.css"
+setupFront :: Window -> Env -> UI ()
+setupFront window fileEnv = void $ do
+    --UI.addStyleSheet window "foundation-5.css"
     UI.addStyleSheet window "grid.css"
+    UI.addStyleSheet window "semantic.min.css"
     return window # set UI.title "Cellular Automata"
 
 
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
     
+    cellButtL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
+    cellSel <- UI.div #. "ui vertical menu"
+                      #+ (  map pure cellButtL )
+
     -- DEBUG
     (wrap, debugWrap, out, debug) <- debugUI canvas
     
     -- Buttons
     reset    <- resetButton canvas
-    test     <- UI.button #+ [string "Test"]
+    test     <- UI.button   #. "ui blue button"
+                            #+ [string "Test"]
 
     body <- UI.div #. "page-container" #+
                 [
@@ -48,7 +55,8 @@ setupFront window = void $ do
                         --],
                     UI.div #. "main"#+
                         [element canvasContainer],
-                    UI.div #. "right",
+                    UI.div #. "right"#+
+                        [element cellSel],
                     UI.div #. "footer"
                 ]
 
@@ -56,20 +64,40 @@ setupFront window = void $ do
 
     let
         clickReset :: Event Comm
-        clickReset = const (Restart initEnv) <$> UI.click reset
+        clickReset = const (Restart fileEnv) <$> UI.click reset
 
         clickCanvas :: Event Comm
-        clickCanvas =   (\pos -> UpdateCell pos "black") <$>
+        clickCanvas =   (\pos -> UpdatePos pos) <$>
                         (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
                         UI.mousedown canvas
 
+        -- cellButtL :: [Element]
+        cellComm ::  [(Element, Comm)]
+        cellComm = zip cellButtL (map (\cell -> Select (cId cell)) (fst $ snd fileEnv))
+
+        clickCell :: Event Comm
+        clickCell = (foldr1 (UI.unionWith const) . map makeClick) cellComm
+                    where
+                        makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
+
+        -- selectCell :: Event Comm
+        -- selectCell =  (\cell -> Select (cId cell)) <$>
+        --                 (\cell -> searchCellId fileEnv (cId cell)) <$>
+        --                 UI.click cellSel 
+            
+            --(\pos -> SelectCell pos) <$>
+        --                 (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
+        --                 UI.click cellSel
+
+
+
         interactions :: Event Comm
-        interactions = UI.unionWith const clickReset clickCanvas
+        interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell]
 
         commands :: Event (Either Error Env -> Either Error Env)    
         commands = fmap evalUp interactions
 
-    calcBehaviour <- accumB (Right initEnv) commands
+    calcBehaviour <- accumB (Right fileEnv) commands
     -- calcBehaviour :: Behavior (Either Error Env)
 
     let res = fmap (\x -> case x of
@@ -78,6 +106,9 @@ setupFront window = void $ do
         errorB = fmap (\x -> case x of
                             Left err -> True
                             Right env -> False) calcBehaviour
+        -- selectedCell = fmap (\x -> case x of
+        --                     Left err -> []
+        --                     Right env -> snd (snd env)) calcBehaviour
 
     --element test # sink UI.enabled (not <$> errorB)
 
@@ -87,6 +118,40 @@ setupFront window = void $ do
 
     element canvas # sink updateCanvas calcBehaviour
 
+    --element cellSel # sink updateCellSelector cellList
+
+-- updateCellSelector :: WriteAttr Element [CellData]
+-- updateCellSelector = mkWriteAttr $ \cells cellSel -> do
+--     element cellSel # set children []
+--     forM_ cells $ \cell -> do
+--         let nombre = name cell
+--             id = cId cell
+--         cellDiv <- UI.a #. "item"
+--             # set UI.text (map toUpper nombre)
+--             # set style [("font-size", "20px")]
+--             #+ [
+--                 UI.div #. "ui label"
+--                     # set style [("background-color", colour cell), ("min-height", "20px")]
+--                 ]
+--         element cellSel #+ [element cellDiv]
+--     return ()
+
+drawCellList :: [CellData] -> CellData -> UI [Element]
+drawCellList [] selected = return empty
+drawCellList (c:cs) selected =  do  let nombre = name c
+                                        id = cId c
+                                        itemSel = if c == selected then "item active" else "item"
+                                        labelSel = if c == selected then "ui left pointing label" else "ui label"
+                                        color = colour c
+                                    cellDiv <- UI.a #. itemSel
+                                        # set UI.text (map toUpper nombre)
+                                        # set style [("font-size", "20px")]
+                                        #+ [
+                                            UI.div #. labelSel
+                                                # set style [("background-color", color), ("min-height", "20px")]
+                                            ]
+                                    cellDivs <- drawCellList cs selected
+                                    return $ cellDiv : cellDivs
 
 updateCanvas :: WriteAttr Element (Either Error Env)
 updateCanvas = mkWriteAttr $ \either canvas -> 
@@ -126,9 +191,6 @@ throwError canvas canvasCont = do   element canvas # set style [("pointer-events
                                                                     ("border", "2px solid red")]
 
                                                
-                               
-
-
 
 debugUI :: Element -> UI ( Element, Element, Element, Element)
 debugUI canvas =  do   -- Mouse

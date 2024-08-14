@@ -47,10 +47,10 @@ import           Control.Parallel
 
 startCA :: IO ()
 --startCA :: IO ()
-startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
+startCA = startGUI defaultConfig { jsStatic = Just "static"} setup --, jsLog = "Test" 
 
 setup :: Window -> UI ()
-setup window = do setupFront window
+setup window = do setupFront window initEnv
 
 main :: IO ()
 main  = startCA

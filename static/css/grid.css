@@ -29,7 +29,7 @@ font-size: 30px;
 
 .canvas-container{
     border: 1px solid black;
-    background: rgb(200, 200, 200);
+    background: gray;
     position: relative;
     margin: 20px;
 }
@@ -58,7 +58,7 @@ font-size: 30px;
 
 .cell {
     border: 1px solid black;
-    background-color: rgb(200, 200, 200);
+    background-color: grey;
     width: 25px;
     height: 25px;
 }

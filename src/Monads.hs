@@ -20,6 +20,12 @@ class Monad m => MonadState m where
     -- Sets an enviroment
     setEnv :: Env -> m ()
 
+    -- Gets the enviroment
+    getEnv :: m Env
+
+    -- Gets the selected cell
+    getSel :: m CellData
+
 
 -- Class for representing monads that can throw errors
 class Monad m => MonadError m where

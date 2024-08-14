@@ -8,16 +8,15 @@ import Control.Monad
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
 
-
 -- Va a tener una version de lo siguiente: EN DESARROLLO
 
 -- Enviroments
--- type Env = (GridData, [CellData]) -- declared in common
+-- type Env = (GridData, [CellData], CellData) -- declared in common
 
 cellSize = 25 :: Double
 canvasSize = 125 :: Double
 
--- Null enviroment
+-- Init enviroment
 initEnv :: Env
 initEnv   = let size =  floor(canvasSize/cellSize)
                 deadCell = CellData { cId = 0, 
@@ -32,9 +31,9 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                               surviveL  = [] }    
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
-                                grid = V.fromList (replicate size (V.fromList (replicate size 5))),
+                                grid = V.fromList (replicate size (V.fromList (replicate size 0))),
                                 limits = [0,0,0,0] }
-            in (gridD, [deadCell, blackCell])
+            in (gridD, ([deadCell, blackCell], blackCell))
 
 
 
@@ -79,12 +78,17 @@ instance MonadState StateError where
                                          
     addCell var col xs ys = StateError(\s -> 
         case runStateError (lookforCell (Var var)) s of
-            Left UndefCell -> Right (() :!: (fst s, cell : snd s)) 
-                                where cell = createCell (snd s) var col xs ys
+            Left UndefCell -> Right (() :!: (fst s, ((cell : (fst (snd s)), snd(snd s))))) 
+                                where cell = createCell (fst (snd s)) var col xs ys
             Right x -> Left NameInUse
         )
 
     setEnv env = StateError(\s -> Right (() :!: env))
+
+    getEnv = StateError(\s -> Right (s :!: s))
+
+    getSel = StateError(\s -> Right (snd (snd s) :!: s))
+    
 
 checkCell :: Pos -> Env -> String
 checkCell pos env = case runStateError (checkGrid pos) env of
@@ -102,32 +106,30 @@ eval c env =  case runStateError (processComm c) env of
                   (Left err) -> Left err
                   (Right (v :!: s)) -> Right s
 
-
--- evalUpRes :: Comm -> Either Error a -> Either Error a
--- evalUpRes c (Left err) = Left err
--- evalUpRes c (Right (v :!: s)) = evalRes c s
-
-
--- evalRes :: Comm -> Env -> Either Error a
--- evalRes c env =  case runStateError (processComm c) env of
---                   (Left err) -> Left err
---                   (Right (v :!: s)) -> Right (v :!: s)
-
 processComm :: (MonadState m, MonadError m) => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
+processComm (UpdatePos pos) = do    cellId <- checkGrid pos
+                                    sel <- getSel
+                                    if cId sel == cellId then -- Deseleccionar
+                                        updateGrid pos 0
+                                    else 
+                                        updateGrid pos (cId sel)
 processComm (Restart env) = setEnv env
+processComm (Select cellId) = do   cellData <- lookforCell (Id cellId)
+                                   env <- getEnv
+                                   setEnv (fst env, (fst $ snd env, cellData))
 
 searchCellId :: Env -> CellId -> Maybe CellData
-searchCellId (gData, []) idCell = Nothing
-searchCellId (gData, c:cl) idCell =   if cId c == idCell then Just c 
-                                            else searchCellId (gData, cl) idCell
+searchCellId (gData, ([], _)) idCell = Nothing
+searchCellId (gData, (c:cl, sel)) idCell =  if cId c == idCell then Just c 
+                                            else searchCellId (gData, (cl, sel)) idCell
 
 searchCellName :: Env -> Variable -> Maybe CellData
-searchCellName (gData, []) var = Nothing
-searchCellName (gData, c:cl) var =   if name c == var then Just c 
-                                            else searchCellName (gData, cl) var
+searchCellName (gData, ([], _)) var = Nothing
+searchCellName (gData, (c:cl, sel)) var =   if name c == var then Just c 
+                                            else searchCellName (gData, (cl, sel)) var
 
 changeCell :: CellId -> Pos -> GridData -> Maybe GridData
 changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 then
