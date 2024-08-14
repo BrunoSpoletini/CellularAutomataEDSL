@@ -11,7 +11,7 @@ import qualified Data.Vector as V
 -- Va a tener una version de lo siguiente: EN DESARROLLO
 
 -- Enviroments
--- type Env = (GridData, [CellData], CellData) -- declared in common
+-- type Env = (GridData, ([CellData], CellData)) -- declared in common
 
 cellSize = 25 :: Double
 canvasSize = 125 :: Double

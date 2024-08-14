@@ -6,7 +6,7 @@ import Data.IORef
 import Control.Monad
 import Data.Strict.Tuple hiding (fst, snd, zip) 
 
-import           System.Console.Haskeline -- DEBUG
+--import           System.Console.Haskeline -- DEBUG
 
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Canvas as Canvas
@@ -35,6 +35,17 @@ setupFront window fileEnv = void $ do
     cellButtL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
     cellSel <- UI.div #. "ui vertical menu"
                       #+ (  map pure cellButtL )
+
+    -- Select behaviour
+    forM_ cellButtL $ \cellDiv ->
+        on UI.click cellDiv $ const $ do
+            forM_ (cellButtL) $ \cell -> 
+                element cell # set (attr "class") "item"
+            element cellDiv # set (attr "class") "item active"
+
+
+
+
 
     -- DEBUG
     (wrap, debugWrap, out, debug) <- debugUI canvas
@@ -106,9 +117,18 @@ setupFront window fileEnv = void $ do
         errorB = fmap (\x -> case x of
                             Left err -> True
                             Right env -> False) calcBehaviour
-        -- selectedCell = fmap (\x -> case x of
-        --                     Left err -> []
-        --                     Right env -> snd (snd env)) calcBehaviour
+        cellStuff = fmap (\x -> case x of
+                            Left err -> snd initEnv
+                            Right env -> (snd env)) calcBehaviour
+
+        -- la idea es:
+        -- hacer una lista de boton, celula, seleccionada; y cada vez que se actualice el estado, se actualiza la lista de botones
+        ---buttonCellData = (zip (fst cellButtL) (fst $ snd fileEnv))
+        --buttonCellData :: [(Element, CellData)]
+
+        -- buttonCellData :: Behavior [(Element, (CellData, CellData))]
+        -- buttonCellData = fmap (\(celL, selC) -> zip cellButtL ( zip celL (take (length celL) (iterate id selC)))) cellStuff
+
 
     --element test # sink UI.enabled (not <$> errorB)
 
@@ -118,22 +138,28 @@ setupFront window fileEnv = void $ do
 
     element canvas # sink updateCanvas calcBehaviour
 
-    --element cellSel # sink updateCellSelector cellList
 
--- updateCellSelector :: WriteAttr Element [CellData]
--- updateCellSelector = mkWriteAttr $ \cells cellSel -> do
---     element cellSel # set children []
---     forM_ cells $ \cell -> do
---         let nombre = name cell
---             id = cId cell
---         cellDiv <- UI.a #. "item"
---             # set UI.text (map toUpper nombre)
---             # set style [("font-size", "20px")]
---             #+ [
---                 UI.div #. "ui label"
---                     # set style [("background-color", colour cell), ("min-height", "20px")]
---                 ]
---         element cellSel #+ [element cellDiv]
+    -- --forM_ cellButtL $ \cell -> do
+    -- element cell # sink updateCellSelector cellStuff
+
+
+
+
+-- updateCellSelector :: WriteAttr Element ([CellData], CellData)
+-- updateCellSelector = mkWriteAttr $ \((x:cs), selected) button -> do
+--     let nombreS = name selected
+--         nombreB = value UI.text button
+--         isSelected = nombreS == nombreB
+
+--         item = if isSelected then "item active" else "item"
+--         label = if isSelected then "ui left pointing label" else "ui label"
+
+--     element button # set children []
+--     element button  #. item
+--                     -- #+ [
+--                     --     UI.div #. label
+--                     --         # set style [("background-color", color), ("min-height", "20px")]
+--                     --     ]
 --     return ()
 
 drawCellList :: [CellData] -> CellData -> UI [Element]
@@ -143,6 +169,7 @@ drawCellList (c:cs) selected =  do  let nombre = name c
                                         itemSel = if c == selected then "item active" else "item"
                                         labelSel = if c == selected then "ui left pointing label" else "ui label"
                                         color = colour c
+
                                     cellDiv <- UI.a #. itemSel
                                         # set UI.text (map toUpper nombre)
                                         # set style [("font-size", "20px")]
@@ -150,6 +177,17 @@ drawCellList (c:cs) selected =  do  let nombre = name c
                                             UI.div #. labelSel
                                                 # set style [("background-color", color), ("min-height", "20px")]
                                             ]
+
+
+                                    -- -- on UI.click cellDiv $ const $ do
+                                    -- --      element cellDiv # set (attr "class") "item active"
+                                    --                     # set UI.text (map toUpper nombre)
+                                    --                     # set style [("font-size", "20px")]
+                                    --                     # set children []
+                                    --                     #+ [UI.div #. "ui left pointing label"
+                                    --                         # set style [("background-color", color), ("min-height", "20px")]
+                                    --                     ]
+
                                     cellDivs <- drawCellList cs selected
                                     return $ cellDiv : cellDivs
 
