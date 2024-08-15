@@ -51,8 +51,25 @@ setupFront window fileEnv = void $ do
     -- Reset button
     reset    <- resetButton console
 
-    -- Time controller
-    (playContainer, play, pause) <- timeController
+
+
+
+    timer <- UI.timer
+            # set UI.interval 500
+            # set UI.running False
+
+    on UI.tick timer $ const $ do
+        element console # set text "I have been clicked!"
+
+    
+    (playContainer, play, pause) <- timeController timer
+
+
+
+
+
+    --UI.start unpackedTimer
+
 
     body <- UI.div #. "page-container" #+
                 [
@@ -87,8 +104,11 @@ setupFront window fileEnv = void $ do
                     where
                         makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
 
+        timerTick :: Event Comm
+        timerTick = const (UpdatePos (1,1)) <$> UI.tick timer -- cambiar update por step
+
         interactions :: Event Comm
-        interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell]
+        interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell, timerTick]
 
         commands :: Event (Either Error Env -> Either Error Env)
         commands = fmap evalUp interactions
@@ -275,8 +295,8 @@ getElem :: Window -> String -> UI Element
 getElem window str = do     elemList <- getElementsByTagName window str
                             return (head elemList)
 
-timeController :: UI (Element, Element, Element)
-timeController = do
+timeController :: UI.Timer -> UI (Element, Element, Element)
+timeController timer = do
     playContainer <- UI.div #. "ui vertical menu"
 
     play <- UI.a #. "item"
@@ -290,10 +310,12 @@ timeController = do
     on UI.click play $ const $ do 
         element play # set (attr "class") "item active"
         element pause # set (attr "class") "item"
+        UI.start timer
     
     on UI.click pause $ const $ do 
         element play # set (attr "class") "item"
         element pause # set (attr "class") "item active"
+        UI.stop timer        
 
     element playContainer #+ [element play, element pause]
     return (playContainer, play, pause)
