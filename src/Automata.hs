@@ -14,7 +14,7 @@ import qualified Data.Vector as V
 -- type Env = (GridData, ([CellData], CellData)) -- declared in common
 
 cellSize = 25 :: Double
-canvasSize = 125 :: Double
+canvasSize = 500 :: Double
 
 -- Init enviroment
 initEnv :: Env
@@ -28,12 +28,17 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                               name = "black", 
                               colour = "black", 
                               bornL = [], 
-                              surviveL  = [] }    
+                              surviveL  = [] } 
+                testCell = CellData { cId = 2, 
+                              name = "test", 
+                              colour = "green",
+                              bornL = [], 
+                              surviveL  = [] } 
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),
                                 limits = [0,0,0,0] }
-            in (gridD, ([deadCell, blackCell], blackCell))
+            in (gridD, ([deadCell, blackCell, testCell], blackCell))
 
 
 

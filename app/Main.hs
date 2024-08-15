@@ -41,10 +41,6 @@ import           Control.Parallel
 --- Interpreter
 ---------------------
 
-
-
-
-
 startCA :: IO ()
 --startCA :: IO ()
 startCA = startGUI defaultConfig { jsStatic = Just "static"} setup --, jsLog = "Test" 

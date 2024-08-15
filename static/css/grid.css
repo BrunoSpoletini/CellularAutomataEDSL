@@ -1,29 +1,44 @@
 
 /* Page display */
-.header { grid-area: header; }
-.menu { grid-area: menu;
-        display:inline }
-.main { grid-area: main; }
-.right { grid-area: right; }
-.footer { grid-area: footer; }
+.header {   
+    grid-area: header; 
+}
+.menu {     
+    grid-area: menu;
+ }
+.main {     
+    grid-area: main; 
+}
+.right {    
+    grid-area: right; 
+}
+.footer {   
+    grid-area: footer;
+}
 
 .page-container {
-display: grid;
-grid-template-areas:
-    'header header header header header header'
-    'menu main main main right right'
-    'menu footer footer footer right right';
-gap: 10px;
-background-color: #ffffff;
-padding: 10px;
+    display: grid;
+    grid-template-areas:
+        'header header header header header header'
+        'menu main main main right right'
+        'menu main main main footer footer';
+    gap: 10px;
+    background-color: #ffffff;
+    padding: 10px;
 }
 
 .page-container > div {
-background-color: rgba(218, 254, 251, 0.8);
-text-align: center;
-padding: 20px 0;
-font-size: 30px;
+    background-color: rgba(218, 254, 251, 0.8);
+    text-align: center;
+    padding: 20px 0;
+    font-size: 30px;
+
+    display: flex;
+    justify-content: space-around;;
+    align-items: center;
+    flex-direction: column;
 }
+
 
 /* CA Canvas */
 
@@ -45,6 +60,7 @@ font-size: 30px;
 
 .canvas{
     position: absolute;
+    cursor: pointer;
     top: 0;
     bottom: 0;
     left: 0;

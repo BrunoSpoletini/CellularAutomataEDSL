@@ -43,22 +43,23 @@ setupFront window fileEnv = void $ do
 
     -- Console
     console <- UI.div #. "ui segment"
-        # set style [("width", "100%"), ("height", "200px"), ("overflow-y", "scroll")]
+        # set style [("width", "15rem"), ("height", "200px"), ("overflow-y", "scroll") ]
         # set (attr "tabindex") "1"
         # set (attr "contenteditable") "false"
         # set text "Historial de comandos"
 
-    -- Buttons
+    -- Reset button
     reset    <- resetButton console
-    test     <- UI.button   #. "ui blue button"
-                            #+ [string "Test"]
+
+    -- Time controller
+    (playContainer, play, pause) <- timeController
 
     body <- UI.div #. "page-container" #+
                 [
                     UI.div #. "header"#+
                         [element wrap, element debugWrap],
                     UI.div #. "menu"#+
-                        [element reset, element test],
+                        [element playContainer, element reset],
                     UI.div #. "main"#+
                         [element canvasContainer],
                     UI.div #. "right"#+
@@ -97,7 +98,7 @@ setupFront window fileEnv = void $ do
 
     calcBehaviour <- accumB (Right fileEnv) commands
 
-    comHist <- accumB empty commandsArray
+    comHist <- accumB empty commandsArray 
 
     let res = fmap (\x -> case x of
                             Left err -> show err
@@ -108,7 +109,7 @@ setupFront window fileEnv = void $ do
 
     element body # sink detectError errorB
 
-    element debug # sink text res
+    --element debug # sink text res
 
     element canvas # sink updateCanvas calcBehaviour
 
@@ -233,7 +234,9 @@ fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
 resetButton :: Element -> UI Element
-resetButton console =   do  button <- UI.button #+ [string "Reset"]
+resetButton console =   do  button <- UI.button #. "ui red button"
+                                                #+ [string "Reset"]
+                                                # set style [("font-size", "20px")]
                             on UI.click button $ const $ do
                                 element console # set children []
                             return button
@@ -271,3 +274,28 @@ drawCanvas cellSize canvasSize = do
 getElem :: Window -> String -> UI Element
 getElem window str = do     elemList <- getElementsByTagName window str
                             return (head elemList)
+
+timeController :: UI (Element, Element, Element)
+timeController = do
+    playContainer <- UI.div #. "ui vertical menu"
+
+    play <- UI.a #. "item"
+                        #+ [string "Play"]
+                        # set style [("font-size", "20px")]
+
+    pause <- UI.a #. "item active"
+                        #+ [string "Pause"]
+                        # set style [("font-size", "20px")]
+
+    on UI.click play $ const $ do 
+        element play # set (attr "class") "item active"
+        element pause # set (attr "class") "item"
+    
+    on UI.click pause $ const $ do 
+        element play # set (attr "class") "item"
+        element pause # set (attr "class") "item active"
+
+    element playContainer #+ [element play, element pause]
+    return (playContainer, play, pause)
+
+
