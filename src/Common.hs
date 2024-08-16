@@ -31,8 +31,8 @@ module Common where
                                 surviveL :: [Int] }
         deriving (Show, Eq)
  
-    data GridData = GridData {  height :: Int,
-                                width :: Int,
+    data GridData = GridData {  height :: Int, -- se pueden sacar de la grid
+                                width :: Int, -- usando height = V.length cuadr y width = V.length (cuadr V.! 0)
                                 grid :: Grid,
                                 limits :: [Int]
                                 }

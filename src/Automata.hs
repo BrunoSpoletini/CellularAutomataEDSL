@@ -1,5 +1,5 @@
 module Automata where
-
+import Debug.Trace -- TO DO remove
 import Common
 import Monads
 import Prelude
@@ -23,22 +23,27 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                                     name = "dead", 
                                     colour = "grey", 
                                     bornL = [], 
-                                    surviveL  = [] }
-                blackCell = CellData { cId = 1, 
-                              name = "black", 
+                                    surviveL  = [1,2,3,4,5,6,7,8] }
+                conwayCell = CellData { cId = 1, 
+                              name = "conway", 
                               colour = "black", 
-                              bornL = [], 
-                              surviveL  = [] } 
-                testCell = CellData { cId = 2, 
-                              name = "test", 
-                              colour = "green",
-                              bornL = [], 
+                              bornL = [3], 
+                              surviveL  = [2,3] } 
+                highlifeCell = CellData { cId = 2, 
+                              name = "highlife", 
+                              colour = "blue",
+                              bornL = [3,6], 
+                              surviveL  = [2,3] }
+                seedsCell = CellData { cId = 3, 
+                              name = "seeds", 
+                              colour = "red",
+                              bornL = [2], 
                               surviveL  = [] } 
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),
                                 limits = [0,0,0,0] }
-            in (gridD, ([deadCell, blackCell, testCell], blackCell))
+            in (gridD, ([deadCell, conwayCell, highlifeCell, seedsCell], conwayCell))
 
 
 
@@ -121,6 +126,9 @@ processComm (UpdatePos pos) = do    cellId <- checkGrid pos
                                         updateGrid pos 0
                                     else 
                                         updateGrid pos (cId sel)
+processComm Step = resolveStep
+
+
 processComm (Restart env) = setEnv env
 processComm (Select cellId) = do   cellData <- lookforCell (Id cellId)
                                    env <- getEnv
@@ -160,3 +168,52 @@ createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1,
 printGrid :: Env -> String
 printGrid (gData, cList) = let g = grid gData
                 in V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "-\n") "" g
+
+resolveStep :: (MonadState m, MonadError m) => m ()
+resolveStep = do
+    env <- getEnv
+    let gData = fst env
+        cuadr = grid gData
+        newGrid = V.imap (\i row -> V.imap (\j cell -> resolveCell (i, j) cell env) row) cuadr
+    setEnv (gData {grid = newGrid}, snd env)
+
+resolveCell :: Pos -> CellId -> Env -> CellId
+resolveCell (x, y) currentCellId env = 
+    let gData = fst env
+        cellList = fst $ snd env
+        maybeCellData = searchCellId env currentCellId
+    in case maybeCellData of
+        Nothing -> 0
+        Just currentCellData ->   let neighbours = getNeighbours (x, y) gData
+                    in if currentCellId == 0 then
+                            cellBirth cellList currentCellData neighbours
+                        else
+                            --trace "test2" $
+                            if elem (length $ filter (==cId currentCellData) (getNeighbours (x, y) gData)) (surviveL currentCellData) then cId currentCellData else 0
+
+cellBirth :: [CellData] -> CellData -> [CellId] -> CellId
+cellBirth cells cellData neighbours = 
+    let canBeBorn c = elem (length $ filter (== cId c) neighbours) (bornL c)
+        bornable = filter canBeBorn cells
+    in  if length bornable == 1 then -- if there is more than one cell that can be born, no cell is born
+            cId $ head bornable
+        else
+            0
+
+getNeighbours :: Pos -> GridData -> [CellId]
+getNeighbours (x, y) gData = 
+    --trace "Entro getNeighbours" $
+    let cuadr = grid gData
+        height = V.length cuadr
+        width = V.length (cuadr V.! 0)
+        neighbours = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
+        validNeighbours = filter (\(x, y) -> x >= 0 && x < width && y >= 0 && y < height) neighbours 
+        -- TO DO: cambiar para que los bordes sean ciclicos
+    in let idCant = map (\(x, y) -> (cuadr V.! x) V.! y) validNeighbours
+       in --trace ("test"++ "\n" ++ 
+            --show neighbours ++ "\n" ++ 
+            --show validNeighbours ++ "\n" ++ 
+            --show idCant ++ "\n" ++ 
+            --show cuadr) 
+            idCant -- TO DO borrar trace
+

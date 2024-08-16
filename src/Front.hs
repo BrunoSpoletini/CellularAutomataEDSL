@@ -58,8 +58,8 @@ setupFront window fileEnv = void $ do
             # set UI.interval 500
             # set UI.running False
 
-    on UI.tick timer $ const $ do
-        element console # set text "I have been clicked!"
+    -- on UI.tick timer $ const $ do
+    --     element console # set text "I have been clicked!"
 
     
     (playContainer, play, pause) <- timeController timer
@@ -105,7 +105,7 @@ setupFront window fileEnv = void $ do
                         makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
 
         timerTick :: Event Comm
-        timerTick = const (UpdatePos (1,1)) <$> UI.tick timer -- cambiar update por step
+        timerTick = const Step <$> UI.tick timer -- cambiar update por step
 
         interactions :: Event Comm
         interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell, timerTick]

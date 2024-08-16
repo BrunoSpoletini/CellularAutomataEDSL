@@ -30,7 +30,7 @@
 .page-container > div {
     background-color: rgba(218, 254, 251, 0.8);
     text-align: center;
-    padding: 20px 0;
+    /* padding: 20px 0; */
     font-size: 30px;
 
     display: flex;
