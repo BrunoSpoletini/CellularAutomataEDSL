@@ -68,15 +68,16 @@ setupFront window fileEnv = void $ do
 
 
 
-    --UI.start unpackedTimer
+    url <- UI.loadFile "image/png" "static/background.png"
+    --url <- UI.loadFile "image/gif" "static/loop.gif"
 
-
-    body <- UI.div #. "page-container" #+
-                [
-                    UI.div #. "header"#+
+    body <- UI.div #. "page-container" 
+                   # set UI.style [("background-image", "url(" ++ url ++ ")"), ("background-size", "cover")]
+                #+ [
+                    UI.div #. "header "#+
                         [element wrap, element debugWrap],
-                    UI.div #. "menu"#+
-                        [element playContainer, element reset],
+                    UI.div #. "menu"
+                        #+ [element playContainer, element reset],
                     UI.div #. "main"#+
                         [element canvasContainer],
                     UI.div #. "right"#+
@@ -85,10 +86,18 @@ setupFront window fileEnv = void $ do
                         [element console]
                 ]
 
+    -- url <- UI.loadFile "image/png" "static/background.png"
+    -- img <- UI.img # set UI.src url
+
+    -- on UI.click console $ const $ do
+    --     console # UI.drawImage img (60,20)
+
+    -- -- UI.drawImage img (0, 0) console
+
     getBody window #+ [ pure body ]
 
     let
-        clickReset :: Event Comm
+        clickReset :: Event Comm 
         clickReset = const (Restart fileEnv) <$> UI.click reset
 
         clickCanvas :: Event Comm

@@ -196,7 +196,7 @@ cellBirth cells cellData neighbours =
     let canBeBorn c = elem (length $ filter (== cId c) neighbours) (bornL c)
         bornable = filter canBeBorn cells
     in  if length bornable == 1 then -- if there is more than one cell that can be born, no cell is born
-            cId $ head bornable
+            cId $ head bornable 
         else
             0
 

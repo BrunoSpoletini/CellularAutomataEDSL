@@ -19,20 +19,20 @@
 .page-container {
     display: grid;
     grid-template-areas:
-        'header header header header header header'
-        'menu main main main right right'
-        'menu main main main footer footer';
+    'menu main main main right right'
+    'menu main main main footer footer'
+    'header header header header header header';
     gap: 10px;
     background-color: #ffffff;
     padding: 10px;
 }
 
 .page-container > div {
-    background-color: rgba(218, 254, 251, 0.8);
+    background-color: rgba(0, 0, 0, 0.675);
     text-align: center;
     /* padding: 20px 0; */
     font-size: 30px;
-
+    border-radius: 10px;
     display: flex;
     justify-content: space-around;;
     align-items: center;
