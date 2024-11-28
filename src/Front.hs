@@ -38,7 +38,10 @@ setupFront window fileEnv = void $ do
                       #+ (  map element cellButtL )
 
     -- DEBUG
-    (wrap, debugWrap, out, debug) <- debugUI canvas
+    -- (wrap, debugWrap, out, debug) <- debugUI canvas
+
+    header <- UI.div    #. "header"
+                        # set text "Cellular Automata"
 
     -- Console
     console <- UI.div #. "ui segment"
@@ -65,16 +68,18 @@ setupFront window fileEnv = void $ do
     body <- UI.div #. "page-container" 
                    # set UI.style [("background-image", "url(" ++ url ++ ")"), ("background-size", "cover")]
                 #+ [
-                    UI.div #. "header "#+
-                        [element wrap, element debugWrap],
-                    UI.div #. "menu"
-                        #+ [element playContainer, element reset],
-                    UI.div #. "main"#+
-                        [element canvasContainer],
-                    UI.div #. "right"#+
-                        [element cellSel],
-                    UI.div #. "footer"#+
-                        [element console]
+                    element header,
+                    UI.div #. "displayRow" #+ 
+                    [
+                        UI.div #. "menu"
+                            #+ [element playContainer, element reset],
+                        element canvasContainer,
+
+                        UI.div #. "cellSelectConsole" #+
+                            [element cellSel,
+                            element console]
+                    ]
+ 
                 ]
 
     getBody window #+ [ pure body ]
@@ -206,25 +211,29 @@ throwError canvas canvasCont = do   element canvas # set style [("pointer-events
 
 
 
-debugUI :: Element -> UI ( Element, Element, Element, Element)
-debugUI canvas =  do   -- Mouse
-                out  <- UI.span # set text "Coordinates: "
-                wrap <- UI.div #. "wrap"
-                    # set style [("width","300px"),("height","100px"),("border","solid black 1px")]
-                    # set (attr "tabindex") "1" -- allow key presses
-                    #+ [element out]
+-- bannerUI :: UI Element
+-- bannerUI =  do   -- Mouse
 
-                    -- Mouse detection
-                on UI.mousemove canvas $ \xy ->
-                    element out # set text ("Coordinates: " ++ show xy)
+--                 -- out  <- UI.span # set text "Coordinates: "
+--                 -- wrap <- UI.div #. "wrap"
+--                 --     # set style [("width","300px"),("height","100px"),("border","solid black 1px")]
+--                 --     # set (attr "tabindex") "1" -- allow key presses
+--                 --     #+ [element out]
 
-                    -- DEBUG
-                debug  <- UI.span # set text "DEBUG: "
-                debugWrap <- UI.div #. "wrap"
-                    # set style [("width","500px"),("height","100px"),("border","solid black 1px")]
-                    # set (attr "tabindex") "1" -- allow key presses
-                    #+ [element debug]
-                return (wrap, debugWrap, out, debug)
+--                 --     -- Mouse detection
+--                 -- on UI.mousemove canvas $ \xy ->
+--                 --     element out # set text ("Coordinates: " ++ show xy)
+
+--                 --     -- DEBUG
+--                 -- debug  <- UI.span # set text "DEBUG: "
+--                 -- debugWrap <- UI.div #. "wrap"
+--                 --     # set style [("width","500px"),("height","100px"),("border","solid black 1px")]
+--                 --     # set (attr "tabindex") "1" -- allow key presses
+--                 --     #+ [element debug]
+
+                
+
+--                 return banner
 
 
 
@@ -272,12 +281,12 @@ drawCanvas cellSize canvasSize = do
         UI.stroke canvasBase
 
     -- Volatile Canvas
-    canvas <- UI.canvas #. "canvas"
+    canvas <- UI.canvas #. "canvas shadow"
         # set UI.height canvasSize
         # set UI.width  canvasSize
 
     -- Canvas container
-    canvasContainer <- UI.div #. "canvas-container"
+    canvasContainer <- UI.div #. "canvas-container main"
         # set style [("height", show (canvasSize+1) ++ "px"), ("width", show (canvasSize+1) ++ "px")]
         # set UI.draggable False
         #+ [element canvas, element canvasBase]
