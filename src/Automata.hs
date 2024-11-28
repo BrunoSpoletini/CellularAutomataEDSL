@@ -21,7 +21,7 @@ initEnv :: Env
 initEnv   = let size =  floor(canvasSize/cellSize)
                 deadCell = CellData { cId = 0, 
                                     name = "dead", 
-                                    colour = "grey", 
+                                    colour = "rgb(240 241 236)", 
                                     bornL = [], 
                                     surviveL  = [1,2,3,4,5,6,7,8] }
                 conwayCell = CellData { cId = 1, 

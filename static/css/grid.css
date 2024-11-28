@@ -19,24 +19,28 @@
 .page-container {
     display: grid;
     grid-template-areas:
+    'header header header header header header'
     'menu main main main right right'
-    'menu main main main footer footer'
-    'header header header header header header';
+    'menu main main main footer footer';
     gap: 10px;
     background-color: #ffffff;
     padding: 10px;
 }
 
 .page-container > div {
-    background-color: rgba(0, 0, 0, 0.675);
+    /* background-color: rgba(0, 0, 0, 0.675); */
     text-align: center;
-    /* padding: 20px 0; */
+    padding: 20px 20px;
     font-size: 30px;
     border-radius: 10px;
     display: flex;
-    justify-content: space-around;;
+    justify-content: space-around;
     align-items: center;
     flex-direction: column;
+
+    /* border: 3px solid #fff; */
+    box-shadow: inset -9px 5px 19px 0px #222;
+    backdrop-filter: blur(5px); 
 }
 
 

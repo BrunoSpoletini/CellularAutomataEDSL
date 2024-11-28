@@ -26,7 +26,6 @@ import Monads
 
 setupFront :: Window -> Env -> UI ()
 setupFront window fileEnv = void $ do
-    --UI.addStyleSheet window "foundation-5.css"
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
     return window # set UI.title "Cellular Automata"
@@ -52,8 +51,6 @@ setupFront window fileEnv = void $ do
     reset    <- resetButton console
 
 
-
-
     timer <- UI.timer
             # set UI.interval 500
             # set UI.running False
@@ -64,13 +61,7 @@ setupFront window fileEnv = void $ do
     
     (playContainer, play, pause) <- timeController timer
 
-
-
-
-
-    url <- UI.loadFile "image/png" "static/background.png"
-    --url <- UI.loadFile "image/gif" "static/loop.gif"
-
+    url <- UI.loadFile "image/png" "static/triangulos.png"
     body <- UI.div #. "page-container" 
                    # set UI.style [("background-image", "url(" ++ url ++ ")"), ("background-size", "cover")]
                 #+ [
@@ -85,14 +76,6 @@ setupFront window fileEnv = void $ do
                     UI.div #. "footer"#+
                         [element console]
                 ]
-
-    -- url <- UI.loadFile "image/png" "static/background.png"
-    -- img <- UI.img # set UI.src url
-
-    -- on UI.click console $ const $ do
-    --     console # UI.drawImage img (60,20)
-
-    -- -- UI.drawImage img (0, 0) console
 
     getBody window #+ [ pure body ]
 
