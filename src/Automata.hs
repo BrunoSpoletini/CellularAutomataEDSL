@@ -8,13 +8,11 @@ import Control.Monad
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
 
--- Va a tener una version de lo siguiente: EN DESARROLLO
-
 -- Enviroments
--- type Env = (GridData, ([CellData], CellData)) -- declared in common
+-- type Env = (GridData, ([CellData], CellData))
 
-cellSize = 25 :: Double
-canvasSize = 500 :: Double
+cellSize = 25 :: Double --25
+canvasSize = 500 :: Double --Default: 500
 
 -- Init enviroment
 initEnv :: Env
@@ -38,7 +36,7 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                               name = "seeds", 
                               colour = "red",
                               bornL = [2], 
-                              surviveL  = [] } 
+                              surviveL  = [] }
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),

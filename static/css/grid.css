@@ -16,7 +16,8 @@
 }
 
 .page-container {
-    height: 100%;
+    overflow-y: auto;
+    height: inherit;
     width: 100%;
     text-align: center;
     display: flex;
@@ -24,11 +25,6 @@
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-start;
-
-    /* grid-template-areas:
-    'header header header header header header'
-    'menu main main main right right'
-    'menu main main main footer footer'; */
     background-color: #ffffff;
 }
 
@@ -39,11 +35,29 @@
 .menu{
     display: flex;
     flex-direction: column;
+    max-height: 270px;
+    overflow-y: auto;
+    overflow-x: hidden;
     /* justify-content: space-around;
     align-items: center;
     height: 2000px;
     background-color: #f0f1ec;
     border-bottom: 1px solid #000; */
+}
+
+.ui.vertical.menu .item {
+    font-size: 20px;
+}
+
+.console{
+    width: 15rem;
+    height: 200px;
+    overflow-y: scroll;
+    padding: 5px;
+    margin: 5px;
+    font-family: monospace;
+    text-align: left;
+    line-height: 1.5;
 }
 
 .header {
@@ -65,29 +79,14 @@
     align-items: center;
     width: 100%;
     justify-content: space-evenly;
+    box-shadow: inset 0px 1px 20px 4px #3a4761;
 }
+
 
 .cellSelectConsole {
     display: flex;
     flex-direction: column;
 }
-
-/* 
-.page-container > div {
-    background-color: rgba(0, 0, 0, 0.675);
-    text-align: center;
-    padding: 20px 20px;
-    font-size: 30px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: column;
-
-     border: 3px solid #fff; 
-    box-shadow: inset -9px 5px 19px 0px #222;
-    backdrop-filter: blur(5px);  
-}*/
 
 
 .container {

@@ -37,27 +37,11 @@ import           Automata
 
 import           Control.Parallel
 
----------------------
---- Interpreter
----------------------
-
-startCA :: IO ()
---startCA :: IO ()
-startCA = startGUI defaultConfig { jsStatic = Just "static"} setup --, jsLog = "Test" 
+main :: IO ()
+main = startGUI defaultConfig { jsStatic = Just "static"} setup --, jsLog = "Test" 
 
 setup :: Window -> UI ()
-setup window = do setupFront window initEnv
-
-main :: IO ()
-main  = startCA
-
--- main :: IO ()
--- main  = let 
---             t = eval (UpdateCell (4,4) "black") initEnv
---         in case t of 
---             Left err -> putStrLn "Error"
---             Right (s) -> putStrLn $ printGrid s
-
+setup window = setupFront window initEnv
 
 checkRun :: StateError () -> IO Env
 checkRun m =    let e = runStateError m initEnv 
@@ -65,10 +49,6 @@ checkRun m =    let e = runStateError m initEnv
                     (Left err) -> exitWith (ExitFailure 1)
                     (Right (v :!: s)) -> return s
 
-
-iname, iprompt :: String
-iname = "Autómatas Celulares"
-iprompt = "ST> "
 
 -- ioExceptionCatcher :: IOException -> IO (Maybe a)
 -- ioExceptionCatcher _ = return Nothing

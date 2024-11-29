@@ -20,49 +20,41 @@ import Common
 import Automata
 import Monads
 
--- startCA :: IO ()
--- startCA = startGUI defaultConfig { jsStatic = Just "."} setup --, jsLog = "Test" 
-
-
 setupFront :: Window -> Env -> UI ()
 setupFront window fileEnv = void $ do
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
-    return window # set UI.title "Cellular Automata"
+    pure window # set UI.title "Cellular Automata"
 
+    -- Header
+    header <- UI.div #. "header"
+                     # set text "Cellular Automata"
+
+    -- Canvas
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
-
+    
+    -- Selector de celulas
     cellButtL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
-
     cellSel <- UI.div #. "ui vertical menu"
                       #+ (  map element cellButtL )
 
     -- DEBUG
     -- (wrap, debugWrap, out, debug) <- debugUI canvas
 
-    header <- UI.div    #. "header"
-                        # set text "Cellular Automata"
-
     -- Console
-    console <- UI.div #. "ui segment"
-        # set style [("width", "15rem"), ("height", "200px"), ("overflow-y", "scroll") ]
-        # set (attr "tabindex") "1"
+    console <- UI.div #. "ui segment console"
         # set (attr "contenteditable") "false"
         # set text "Historial de comandos"
 
-    -- Reset button
-    reset    <- resetButton console
-
-
+    -- Timer
     timer <- UI.timer
             # set UI.interval 500
             # set UI.running False
 
-    -- on UI.tick timer $ const $ do
-    --     element console # set text "I have been clicked!"
-
-    
-    (playContainer, play, pause) <- timeController timer
+    -- Botones de control
+    --(playContainer, reset) 
+    (playContainer, reset) <- timeController timer console cellButtL
+    --reset    <- resetButton console
 
     url <- UI.loadFile "image/png" "static/triangulos.png"
     body <- UI.div #. "page-container" 
@@ -72,7 +64,7 @@ setupFront window fileEnv = void $ do
                     UI.div #. "displayRow" #+ 
                     [
                         UI.div #. "menu"
-                            #+ [element playContainer, element reset],
+                           #+ [element playContainer, element reset],
                         element canvasContainer,
 
                         UI.div #. "cellSelectConsole" #+
@@ -194,7 +186,6 @@ updateCanvas = mkWriteAttr $ \either canvas ->
                             let color = colour c
                             drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
 
-
 detectError :: WriteAttr Element Bool
 detectError = mkWriteAttr $ \error body -> do
     when error $ do  element body # set style [("pointer-events","none")]
@@ -202,14 +193,10 @@ detectError = mkWriteAttr $ \error body -> do
                                                ("border", "5px solid red")]
                      return ()
 
-
-
 throwError :: Element -> Element -> UI Element
 throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
                                     element canvasCont # set style [("cursor", "not-allowed"),
                                                                     ("border", "2px solid red")]
-
-
 
 -- bannerUI :: UI Element
 -- bannerUI =  do   -- Mouse
@@ -230,13 +217,7 @@ throwError canvas canvasCont = do   element canvas # set style [("pointer-events
 --                 --     # set style [("width","500px"),("height","100px"),("border","solid black 1px")]
 --                 --     # set (attr "tabindex") "1" -- allow key presses
 --                 --     #+ [element debug]
-
-                
-
 --                 return banner
-
-
-
 
 drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
 drawSquare canvas x y size colour =
@@ -254,13 +235,6 @@ getIndex canvas x y size =
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
-resetButton :: Element -> UI Element
-resetButton console =   do  button <- UI.button #. "ui red button"
-                                                #+ [string "Reset"]
-                                                # set style [("font-size", "20px")]
-                            on UI.click button $ const $ do
-                                element console # set children []
-                            return button
 
 -- Draw the whole canvas
 drawCanvas :: Int -> Int -> UI (Element, Element)
@@ -296,29 +270,52 @@ getElem :: Window -> String -> UI Element
 getElem window str = do     elemList <- getElementsByTagName window str
                             return (head elemList)
 
-timeController :: UI.Timer -> UI (Element, Element, Element)
-timeController timer = do
+timeController :: UI.Timer -> Element -> [(Element, Element)] -> UI (Element, Element)
+timeController timer console = do
     playContainer <- UI.div #. "ui vertical menu"
 
-    play <- UI.a #. "item"
-                        #+ [string "Play"]
-                        # set style [("font-size", "20px")]
+    play <- UI.a #. "item" #+ [string "Play"]
 
-    pause <- UI.a #. "item active"
-                        #+ [string "Pause"]
+    pause <- UI.a #. "item" #+ [string "Pause"]
+                  # set style [("display", "none")]
+
+    reset <- UI.button  #. "ui red button"
                         # set style [("font-size", "20px")]
+                        #+ [string "Reset"]
 
     on UI.click play $ const $ do 
-        element play # set (attr "class") "item active"
-        element pause # set (attr "class") "item"
+        element play # set style [("display", "none")]
+        element pause # set style [("display", "block")]
         UI.start timer
     
     on UI.click pause $ const $ do 
-        element play # set (attr "class") "item"
-        element pause # set (attr "class") "item active"
+        element play # set style [("display", "block")]
+        element pause # set style [("display", "none")]
         UI.stop timer        
 
+    on UI.click reset $ const $ do
+        UI.stop timer
+        element play # set style [("display", "block")]
+        element pause # set style [("display", "none")]
+
+        element console # set children []
+
     element playContainer #+ [element play, element pause]
-    return (playContainer, play, pause)
+    return (playContainer, reset)
 
 
+drawCellList' (c:cs) selected = do  let nombre = name c
+                                        id = cId c
+                                        itemSel = if c == selected then "item active" else "item"
+                                        labelSel = if c == selected then "ui left pointing label" else "ui label"
+                                        color = colour c
+
+                                    cellDiv <- UI.a #. itemSel
+                                        # set UI.text (map toUpper nombre)
+                                        # set style [("font-size", "20px")]
+                                    cellLabel <- UI.div #. labelSel
+                                                        # set style [("background-color", color), ("min-height", "20px")]
+                                    element cellDiv #+ [element cellLabel]
+
+                                    cellDivs <- drawCellList' cs selected
+                                    return $ (cellDiv, cellLabel) : cellDivs
