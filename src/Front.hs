@@ -34,12 +34,9 @@ setupFront window fileEnv = void $ do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
     
     -- Selector de celulas
-    cellButtL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
+    cellButtPairL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
     cellSel <- UI.div #. "ui vertical menu"
-                      #+ (  map element cellButtL )
-
-    -- DEBUG
-    -- (wrap, debugWrap, out, debug) <- debugUI canvas
+                      #+ (  map element $ map fst cellButtPairL )
 
     -- Console
     console <- UI.div #. "ui segment console"
@@ -52,9 +49,7 @@ setupFront window fileEnv = void $ do
             # set UI.running False
 
     -- Botones de control
-    --(playContainer, reset) 
-    (playContainer, reset) <- timeController timer console cellButtL
-    --reset    <- resetButton console
+    (playContainer, reset) <- timeController timer console cellButtPairL
 
     url <- UI.loadFile "image/png" "static/triangulos.png"
     body <- UI.div #. "page-container" 
@@ -85,8 +80,9 @@ setupFront window fileEnv = void $ do
                         (\pos -> getIndex canvas (fst pos) (snd pos) cellSize) <$>
                         UI.mousedown canvas
 
+        -- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
         cellComm ::  [(Element, Comm)]
-        cellComm = zip cellButtL (map (\cell -> Select (cId cell)) (fst $ snd fileEnv))
+        cellComm = zip (map fst cellButtPairL) (map (\cell -> Select (cId cell)) (drop 1 (fst $ snd fileEnv)))
 
         clickCell :: Event Comm
         clickCell = (foldr1 (UI.unionWith const) . map makeClick) cellComm
@@ -134,20 +130,20 @@ updateConsole = mkWriteAttr $ \comHist console -> do
     element console #+ comHist
     return ()
 
-drawCellList :: [CellData] -> CellData -> UI [Element]
-drawCellList cL selected =  do  cellButtPairL <- drawCellList' cL selected
-                                let
-                                     cellButtL = map fst cellButtPairL
-                                     cellButLabelL = map snd cellButtPairL
-                                -- Select behaviour
-                                forM_ cellButtPairL $ \(cellDiv, cellLab) ->
-                                    on UI.click cellDiv $ const $ do
-                                        forM_ cellButtPairL $ \(cellD, cellL) -> do
-                                            element cellD # set (attr "class") "item"
-                                            element cellL # set (attr "class") "ui label"
-                                        element cellDiv # set (attr "class") "item active"
-                                        element cellLab # set (attr "class") "ui left pointing label"
-                                return cellButtL
+drawCellList :: [CellData] -> CellData -> UI [(Element, Element)]
+drawCellList (dCell:cL) selected =  do  cellButtPairL <- drawCellList' cL selected
+                                        let
+                                            cellButtL = map fst cellButtPairL
+                                            cellButLabelL = map snd cellButtPairL
+                                        -- Select behaviour
+                                        forM_ cellButtPairL $ \(cellDiv, cellLab) ->
+                                            on UI.click cellDiv $ const $ do
+                                                forM_ cellButtPairL $ \(cellD, cellL) -> do
+                                                    element cellD # set (attr "class") "item"
+                                                    element cellL # set (attr "class") "ui label"
+                                                element cellDiv # set (attr "class") "item active"
+                                                element cellLab # set (attr "class") "ui left pointing label"
+                                        return cellButtPairL
 
 drawCellList' :: [CellData] -> CellData -> UI [(Element, Element)]
 drawCellList' [] selected = return empty
@@ -271,7 +267,7 @@ getElem window str = do     elemList <- getElementsByTagName window str
                             return (head elemList)
 
 timeController :: UI.Timer -> Element -> [(Element, Element)] -> UI (Element, Element)
-timeController timer console = do
+timeController timer console bs = do
     playContainer <- UI.div #. "ui vertical menu"
 
     play <- UI.a #. "item" #+ [string "Play"]
@@ -280,7 +276,7 @@ timeController timer console = do
                   # set style [("display", "none")]
 
     reset <- UI.button  #. "ui red button"
-                        # set style [("font-size", "20px")]
+                        # set style [("font-size", "20px"), ("width", "100%")]
                         #+ [string "Reset"]
 
     on UI.click play $ const $ do 
@@ -297,25 +293,31 @@ timeController timer console = do
         UI.stop timer
         element play # set style [("display", "block")]
         element pause # set style [("display", "none")]
-
+        -- seteamos la lista de botones a inactivos y activamos el segundo
+        forM_ bs $ \(cellDiv, cellLab) -> do
+            element cellDiv # set (attr "class") "item"
+            element cellLab # set (attr "class") "ui label"
+        let (cDiv, cLab) = head bs
+        element cDiv # set (attr "class") "item active"
+        element cLab # set (attr "class") "ui left pointing label"
         element console # set children []
 
     element playContainer #+ [element play, element pause]
     return (playContainer, reset)
 
 
-drawCellList' (c:cs) selected = do  let nombre = name c
-                                        id = cId c
-                                        itemSel = if c == selected then "item active" else "item"
-                                        labelSel = if c == selected then "ui left pointing label" else "ui label"
-                                        color = colour c
+-- drawCellList' (c:cs) selected = do  let nombre = name c
+--                                         id = cId c
+--                                         itemSel = if c == selected then "item active" else "item"
+--                                         labelSel = if c == selected then "ui left pointing label" else "ui label"
+--                                         color = colour c
 
-                                    cellDiv <- UI.a #. itemSel
-                                        # set UI.text (map toUpper nombre)
-                                        # set style [("font-size", "20px")]
-                                    cellLabel <- UI.div #. labelSel
-                                                        # set style [("background-color", color), ("min-height", "20px")]
-                                    element cellDiv #+ [element cellLabel]
+--                                     cellDiv <- UI.a #. itemSel
+--                                         # set UI.text (map toUpper nombre)
+--                                         # set style [("font-size", "20px")]
+--                                     cellLabel <- UI.div #. labelSel
+--                                                         # set style [("background-color", color), ("min-height", "20px")]
+--                                     element cellDiv #+ [element cellLabel]
 
-                                    cellDivs <- drawCellList' cs selected
-                                    return $ (cellDiv, cellLabel) : cellDivs
+--                                     cellDivs <- drawCellList' cs selected
+--                                     return $ (cellDiv, cellLabel) : cellDivs

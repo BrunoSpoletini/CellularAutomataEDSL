@@ -1,20 +1,3 @@
-/* Page display */
-.header {   
-    grid-area: header; 
-}
-.menu {     
-    grid-area: menu;
- }
-.main {     
-    grid-area: main; 
-}
-.right {    
-    grid-area: right; 
-}
-.footer {   
-    grid-area: footer;
-}
-
 .page-container {
     overflow-y: auto;
     height: inherit;
@@ -38,11 +21,6 @@
     max-height: 270px;
     overflow-y: auto;
     overflow-x: hidden;
-    /* justify-content: space-around;
-    align-items: center;
-    height: 2000px;
-    background-color: #f0f1ec;
-    border-bottom: 1px solid #000; */
 }
 
 .ui.vertical.menu .item {
@@ -82,15 +60,12 @@
     box-shadow: inset 0px 1px 20px 4px #3a4761;
 }
 
-
 .cellSelectConsole {
     display: flex;
     flex-direction: column;
 }
 
-
 .container {
-    /* background-color: rgba(0, 0, 0, 0.675); */
     text-align: center;
     padding: 20px 20px;
     font-size: 30px;
@@ -99,15 +74,11 @@
     justify-content: space-around;
     align-items: center;
     flex-direction: column;
-
-    /* border: 3px solid #fff; */
     box-shadow: inset -9px 5px 19px 0px #222;
     backdrop-filter: blur(5px); 
 }
 
-
 /* CA Canvas */
-
 .canvas-container{
     
     border: 1px solid black;

@@ -43,8 +43,6 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                                 limits = [0,0,0,0] }
             in (gridD, ([deadCell, conwayCell, highlifeCell, seedsCell], conwayCell))
 
-
-
 -- State Monad with Error Handler
 newtype StateError a =
   StateError { runStateError :: Env -> Either Error (Pair a Env) }
@@ -103,8 +101,7 @@ checkCell pos env = case runStateError (checkGrid pos) env of
                       Left err -> "Error: " ++ show err
                       Right (cellId :!: env) -> show cellId
 
-
--- Fix to consider initial state as an error, and allow FRP Threepenny to work
+-- Fix para considerar el estado inicial como un error, y permitir que FRP Threepenny funcione
 evalUp :: Comm -> Either Error Env -> Either Error Env
 evalUp c (Left err) = Left err
 evalUp c (Right env) = eval c env
@@ -193,7 +190,7 @@ cellBirth :: [CellData] -> CellData -> [CellId] -> CellId
 cellBirth cells cellData neighbours = 
     let canBeBorn c = elem (length $ filter (== cId c) neighbours) (bornL c)
         bornable = filter canBeBorn cells
-    in  if length bornable == 1 then -- if there is more than one cell that can be born, no cell is born
+    in  if length bornable == 1 then -- si hay mas de una celula que pueda nacer, no nace ninguna
             cId $ head bornable 
         else
             0
