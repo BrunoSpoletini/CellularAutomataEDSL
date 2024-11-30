@@ -183,7 +183,6 @@ resolveCell (x, y) currentCellId env =
                     in if currentCellId == 0 then
                             cellBirth cellList currentCellData neighbours
                         else
-                            --trace "test2" $
                             if elem (length $ filter (==cId currentCellData) (getNeighbours (x, y) gData)) (surviveL currentCellData) then cId currentCellData else 0
 
 cellBirth :: [CellData] -> CellData -> [CellId] -> CellId
@@ -192,12 +191,10 @@ cellBirth cells cellData neighbours =
         bornable = filter canBeBorn cells
     in  if length bornable == 1 then -- si hay mas de una celula que pueda nacer, no nace ninguna
             cId $ head bornable 
-        else
-            0
+        else 0
 
 getNeighbours :: Pos -> GridData -> [CellId]
 getNeighbours (x, y) gData = 
-    --trace "Entro getNeighbours" $
     let cuadr = grid gData
         height = V.length cuadr
         width = V.length (cuadr V.! 0)

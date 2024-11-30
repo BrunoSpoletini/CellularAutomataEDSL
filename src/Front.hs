@@ -105,16 +105,9 @@ setupFront window fileEnv = void $ do
 
     comHist <- accumB empty commandsArray 
 
-    let res = fmap (\x -> case x of
-                            Left err -> show err
-                            Right env -> printGrid env) calcBehaviour
-        errorB = fmap (\x -> case x of
-                            Left err -> True
-                            Right env -> False) calcBehaviour
 
-    element body # sink detectError errorB
 
-    --element debug # sink text res
+    element body # sink detectError calcBehaviour
 
     element canvas # sink updateCanvas calcBehaviour
 
@@ -163,6 +156,7 @@ drawCellList' (c:cs) selected = do  let nombre = name c
                                     cellDivs <- drawCellList' cs selected
                                     return $ (cellDiv, cellLabel) : cellDivs
 
+-- Actualiza el canvas con el estado actual del enviroment
 updateCanvas :: WriteAttr Element (Either Error Env)
 updateCanvas = mkWriteAttr $ \either canvas ->
     case either of
@@ -182,38 +176,16 @@ updateCanvas = mkWriteAttr $ \either canvas ->
                             let color = colour c
                             drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
 
-detectError :: WriteAttr Element Bool
-detectError = mkWriteAttr $ \error body -> do
-    when error $ do  element body # set style [("pointer-events","none")]
-                     element body # set style [("cursor", "not-allowed"),
-                                               ("border", "5px solid red")]
-                     return ()
-
-throwError :: Element -> Element -> UI Element
-throwError canvas canvasCont = do   element canvas # set style [("pointer-events","none")]
-                                    element canvasCont # set style [("cursor", "not-allowed"),
-                                                                    ("border", "2px solid red")]
-
--- bannerUI :: UI Element
--- bannerUI =  do   -- Mouse
-
---                 -- out  <- UI.span # set text "Coordinates: "
---                 -- wrap <- UI.div #. "wrap"
---                 --     # set style [("width","300px"),("height","100px"),("border","solid black 1px")]
---                 --     # set (attr "tabindex") "1" -- allow key presses
---                 --     #+ [element out]
-
---                 --     -- Mouse detection
---                 -- on UI.mousemove canvas $ \xy ->
---                 --     element out # set text ("Coordinates: " ++ show xy)
-
---                 --     -- DEBUG
---                 -- debug  <- UI.span # set text "DEBUG: "
---                 -- debugWrap <- UI.div #. "wrap"
---                 --     # set style [("width","500px"),("height","100px"),("border","solid black 1px")]
---                 --     # set (attr "tabindex") "1" -- allow key presses
---                 --     #+ [element debug]
---                 return banner
+-- Detecta el error en el step e inhabilita la UI
+detectError :: WriteAttr Element (Either Error Env)
+detectError = mkWriteAttr $ \either body -> do
+    case either of
+        Left err -> do
+            element body # set style [("pointer-events","none")]
+            element body # set style [("cursor", "not-allowed"),
+                                    ("border", "5px solid red")]
+            return ()
+        Right _ -> return () 
 
 drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
 drawSquare canvas x y size colour =
@@ -262,10 +234,6 @@ drawCanvas cellSize canvasSize = do
         #+ [element canvas, element canvasBase]
     return (canvasContainer, canvas)
 
-getElem :: Window -> String -> UI Element
-getElem window str = do     elemList <- getElementsByTagName window str
-                            return (head elemList)
-
 timeController :: UI.Timer -> Element -> [(Element, Element)] -> UI (Element, Element)
 timeController timer console bs = do
     playContainer <- UI.div #. "ui vertical menu"
@@ -307,20 +275,3 @@ timeController timer console bs = do
 
     element playContainer #+ [element play, element pause]
     return (playContainer, reset)
-
-
--- drawCellList' (c:cs) selected = do  let nombre = name c
---                                         id = cId c
---                                         itemSel = if c == selected then "item active" else "item"
---                                         labelSel = if c == selected then "ui left pointing label" else "ui label"
---                                         color = colour c
-
---                                     cellDiv <- UI.a #. itemSel
---                                         # set UI.text (map toUpper nombre)
---                                         # set style [("font-size", "20px")]
---                                     cellLabel <- UI.div #. labelSel
---                                                         # set style [("background-color", color), ("min-height", "20px")]
---                                     element cellDiv #+ [element cellLabel]
-
---                                     cellDivs <- drawCellList' cs selected
---                                     return $ (cellDiv, cellLabel) : cellDivs
