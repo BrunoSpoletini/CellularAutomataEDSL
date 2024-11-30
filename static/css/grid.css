@@ -27,6 +27,21 @@
     font-size: 20px;
 }
 
+.ui.red.ui.red.button{
+    font-size: 20px;
+    width: 100%;
+}
+
+.ui.vertical.menu .item:hover {
+    background-color: #f0f1ec;
+}
+
+.ui.vertical.menu .item>img:not(.ui) {
+    margin-right: 10px;
+    width: 20px;
+    margin-bottom: 0px;
+}
+
 .console{
     width: 15rem;
     height: 200px;

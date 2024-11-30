@@ -101,7 +101,7 @@ setupFront window fileEnv = void $ do
         commandsArray :: Event ([UI Element] -> [UI Element])
         commandsArray = fmap commToDiv interactions
 
-    calcBehaviour <- accumB (Right fileEnv) commands
+    calcBehaviour <- accumB (Right fileEnv) commands -- aca hay que checkear si el env de entrada es correcto
 
     comHist <- accumB empty commandsArray 
 
@@ -270,13 +270,16 @@ timeController :: UI.Timer -> Element -> [(Element, Element)] -> UI (Element, El
 timeController timer console bs = do
     playContainer <- UI.div #. "ui vertical menu"
 
-    play <- UI.a #. "item" #+ [string "Play"]
+    play <- UI.a #. "icon-container item" #+ [
+        UI.img # set UI.src "static/play.svg" #. "icon",
+        string "Play"]
 
-    pause <- UI.a #. "item" #+ [string "Pause"]
-                  # set style [("display", "none")]
+    pause <- UI.a #. "icon-container item" #+ [
+        UI.img # set UI.src "static/pause.svg" #. "icon",
+        string "Pause"
+        ] # set style [("display", "none")]
 
     reset <- UI.button  #. "ui red button"
-                        # set style [("font-size", "20px"), ("width", "100%")]
                         #+ [string "Reset"]
 
     on UI.click play $ const $ do 
@@ -293,7 +296,7 @@ timeController timer console bs = do
         UI.stop timer
         element play # set style [("display", "block")]
         element pause # set style [("display", "none")]
-        -- seteamos la lista de botones a inactivos y activamos el segundo
+        -- seteamos la lista de botones a inactivos y activamos el primero
         forM_ bs $ \(cellDiv, cellLab) -> do
             element cellDiv # set (attr "class") "item"
             element cellLab # set (attr "class") "ui label"
