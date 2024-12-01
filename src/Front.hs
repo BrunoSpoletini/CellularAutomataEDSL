@@ -47,7 +47,7 @@ setupFront window fileEnv = void $ do
 
     -- Timer
     timer <- UI.timer
-            # set UI.interval 500
+            # set UI.interval 1000
             # set UI.running False
 
     -- Botones de control
@@ -92,7 +92,7 @@ setupFront window fileEnv = void $ do
                         makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
 
         timerTick :: Event Comm
-        timerTick = const Step <$> UI.tick timer -- cambiar update por step
+        timerTick = const Step <$> UI.tick timer
 
         interactions :: Event Comm
         interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell, timerTick]
@@ -100,12 +100,12 @@ setupFront window fileEnv = void $ do
         commands :: Event (Either Error Env -> Either Error Env)
         commands = fmap evalUp interactions
 
-        commandsArray :: Event ([UI Element] -> [UI Element])
-        commandsArray = fmap commToDiv interactions
+        commandsArray :: Event ([Comm] -> [Comm])
+        commandsArray = fmap (:) interactions
 
     calcBehaviour <- accumB (Right fileEnv) commands -- aca hay que checkear si el env de entrada es correcto
 
-    -- comHist <- accumB empty commandsArray 
+    comHist <- accumB [] commandsArray 
 
 
 
@@ -113,16 +113,34 @@ setupFront window fileEnv = void $ do
 
     element canvas # sink updateCanvas calcBehaviour
 
-    -- element console # sink updateConsole comHist
+    element console # sink updateConsole comHist
 
-commToDiv :: Comm -> [UI Element] -> [UI Element]
-commToDiv (Restart _) xs = empty
-commToDiv x xs = (UI.div # set text (show x)):xs
+-- commToDiv :: Comm -> String -> String
+-- commToDiv (Restart _) str = ""
+-- commToDiv (Step) str =  if length str >= 4 then
+--                             let subst = take 4 str
+--                             if subst == "Step" then 
+                                
+--                                 else "Step\n" ++ str
+--                             -- (show x) ++ "\n" ++ str
+--                             else "Step\n" ++ str
+-- commToDiv x str = (show x) ++ "\n" ++ str
 
-updateConsole :: WriteAttr Element [UI Element]
+commToString :: [Comm] -> String
+commToString [] = ""
+commToString ((Restart _):cs) = ""
+commToString (Step:cs) = resumeSteps cs 1
+commToString (c:cs) = (show c) ++ "\n" ++ (commToString cs)
+
+resumeSteps :: [Comm] -> Int -> String
+resumeSteps (Step:cs) n = resumeSteps cs (n+1)
+resumeSteps (cs) 1 = "Step\n" ++ commToString cs
+resumeSteps (cs) n = "Step (x" ++ (show n) ++ ")\n" ++ (commToString cs)
+
+updateConsole :: WriteAttr Element [Comm]
 updateConsole = mkWriteAttr $ \comHist console -> do
     element console # set children []
-    element console #+ comHist
+    element console # set text (commToString comHist)
     return ()
 
 drawCellList :: [CellData] -> CellData -> UI [(Element, Element)]
@@ -130,7 +148,6 @@ drawCellList (dCell:cL) selected =  do  cellButtPairL <- drawCellList' cL select
                                         let
                                             cellButtL = map fst cellButtPairL
                                             cellButLabelL = map snd cellButtPairL
-                                        -- Select behaviour
                                         forM_ cellButtPairL $ \(cellDiv, cellLab) ->
                                             on UI.click cellDiv $ const $ do
                                                 forM_ cellButtPairL $ \(cellD, cellL) -> do

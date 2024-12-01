@@ -46,8 +46,8 @@ module Common where
                 | Step 
                 | CheckC Pos --pending
                 | DefCell Variable Variable [Int] [Int]
-                | Restart Env -- UI shortcut
                 | Select CellId
+                | Restart Env -- UI shortcut
         deriving (Show)
 
     data Error = UndefCell | OutOfBounds | NameInUse

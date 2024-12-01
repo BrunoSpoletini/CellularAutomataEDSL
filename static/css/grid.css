@@ -50,6 +50,7 @@
     margin: 5px;
     font-family: monospace;
     text-align: left;
+    white-space: pre-wrap;
     line-height: 1.5;
 }
 

@@ -49,7 +49,6 @@ initEnv   = let size =  floor(canvasSize/cellSize)
 newtype StateError a =
   StateError { runStateError :: Env -> Either Error (Pair a Env) }
 
--- Para calmar al GHC
 instance Functor StateError where
   fmap = liftM
 
