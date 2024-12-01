@@ -11,7 +11,7 @@ import qualified Data.Vector as V
 -- Enviroments
 -- type Env = (GridData, ([CellData], CellData))
 
-cellSize = 25 :: Double --25
+cellSize = 20 :: Double --20
 canvasSize = 500 :: Double --Default: 500
 
 -- Init enviroment
@@ -40,7 +40,9 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),
-                                limits = [0,0,0,0] }
+                                limits = [0,0,0,0],
+                                changes = []
+                                }
             in (gridD, ([deadCell, conwayCell, highlifeCell, seedsCell], conwayCell))
 
 -- State Monad with Error Handler
@@ -89,6 +91,8 @@ instance MonadState StateError where
             Right x -> Left NameInUse
         )
 
+    storeChanges cellL = StateError(\s -> Right (() :!: ((fst s) {changes = cellL}, snd s)))
+
     setEnv env = StateError(\s -> Right (() :!: env))
 
     getEnv = StateError(\s -> Right (s :!: s))
@@ -101,7 +105,7 @@ checkCell pos env = case runStateError (checkGrid pos) env of
                       Left err -> "Error: " ++ show err
                       Right (cellId :!: env) -> show cellId
 
--- Fix para considerar el estado inicial como un error, y permitir que FRP Threepenny funcione
+-- Considera el estado inicial como un error
 evalUp :: Comm -> Either Error Env -> Either Error Env
 evalUp c (Left err) = Left err
 evalUp c (Right env) = eval c env
@@ -118,13 +122,17 @@ processComm (DefCell name col xs ys) = addCell name col xs ys
 processComm (UpdatePos pos) = do    cellId <- checkGrid pos
                                     sel <- getSel
                                     if cId sel == cellId then -- Deseleccionar
-                                        updateGrid pos 0
+                                        do  updateGrid pos 0
+                                            storeChanges [pos]
                                     else 
-                                        updateGrid pos (cId sel)
+                                        do  updateGrid pos (cId sel)
+                                            storeChanges [pos]
 processComm Step = resolveStep
 
 
-processComm (Restart env) = setEnv env
+processComm (Restart env) = do  let cuadr = grid (fst env)
+                                setEnv env
+                                storeChanges ([(i, j) | i <- [0..(V.length cuadr - 1)], j <- [0..(V.length (cuadr V.! 0) - 1)]])
 processComm (Select cellId) = do   cellData <- lookforCell (Id cellId)
                                    env <- getEnv
                                    setEnv (fst env, (fst $ snd env, cellData))
@@ -170,7 +178,8 @@ resolveStep = do
     let gData = fst env
         cuadr = grid gData
         newGrid = V.imap (\i row -> V.imap (\j cell -> resolveCell (i, j) cell env) row) cuadr
-    setEnv (gData {grid = newGrid}, snd env)
+        changedCells = filter (\(x, y) -> ((cuadr V.! y) V.! x) /= (newGrid V.! y V.! x)) [(i, j) | i <- [0..(V.length cuadr - 1)], j <- [0..(V.length (cuadr V.! 0) - 1)] ]
+    setEnv (gData {grid = newGrid, changes = changedCells}, snd env)
 
 resolveCell :: Pos -> CellId -> Env -> CellId
 resolveCell (x, y) currentCellId env = 

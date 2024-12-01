@@ -16,6 +16,9 @@ class Monad m => MonadState m where
 
     -- Adds a cell to the state
     addCell :: Variable -> Variable -> [Int] -> [Int] -> m ()
+    
+    -- Stores the changed cell list in grid data
+    storeChanges :: [Pos] -> m ()
 
     -- Sets an enviroment
     setEnv :: Env -> m ()

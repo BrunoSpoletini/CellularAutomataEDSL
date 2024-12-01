@@ -16,6 +16,8 @@ import           Graphics.UI.Threepenny.Core hiding (grid)
 --import Distribution.Compat.Prelude
 import qualified Data.Vector as V
 
+import Debug.Trace -- TO DO remove
+
 import Common
 import Automata
 import Monads
@@ -103,7 +105,7 @@ setupFront window fileEnv = void $ do
 
     calcBehaviour <- accumB (Right fileEnv) commands -- aca hay que checkear si el env de entrada es correcto
 
-    comHist <- accumB empty commandsArray 
+    -- comHist <- accumB empty commandsArray 
 
 
 
@@ -111,7 +113,7 @@ setupFront window fileEnv = void $ do
 
     element canvas # sink updateCanvas calcBehaviour
 
-    element console # sink updateConsole comHist
+    -- element console # sink updateConsole comHist
 
 commToDiv :: Comm -> [UI Element] -> [UI Element]
 commToDiv (Restart _) xs = empty
@@ -165,17 +167,20 @@ updateCanvas = mkWriteAttr $ \either canvas ->
             let gridD = fst env
                 cells = snd env
                 autGrid = grid gridD
-            canvas # UI.clearCanvas
-            forM_ [0.. height gridD-1] $ \y -> do
-                forM_ [0.. width gridD-1] $ \x -> do
-                    let cellId = (autGrid V.! y) V.! x
-                        cell = searchCellId env cellId
-                    case cell of
-                        Nothing -> return ()
-                        Just c -> do
-                            let color = colour c
-                            drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
+                changedCells = changes gridD
+            -- canvas # UI.clearCanvas
 
+            forM_ changedCells $ \(x, y)  -> do
+            -- forM_ [0.. height gridD-1] $ \y -> do
+            --     forM_ [0.. width gridD-1] $ \x -> do
+                let cellId = (autGrid V.! y) V.! x
+                    cell = searchCellId env cellId
+                case cell of
+                    Nothing -> return ()
+                    Just c -> do
+                        let color = colour c
+                        drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
+                
 -- Detecta el error en el step e inhabilita la UI
 detectError :: WriteAttr Element (Either Error Env)
 detectError = mkWriteAttr $ \either body -> do

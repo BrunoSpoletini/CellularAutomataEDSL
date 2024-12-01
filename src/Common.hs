@@ -34,7 +34,8 @@ module Common where
     data GridData = GridData {  height :: Int, -- se pueden sacar de la grid
                                 width :: Int, -- usando height = V.length cuadr y width = V.length (cuadr V.! 0)
                                 grid :: Grid,
-                                limits :: [Int]
+                                limits :: [Int],
+                                changes :: [Pos]
                                 }
         deriving (Show)
 
