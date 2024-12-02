@@ -47,6 +47,7 @@ library
     , base
     , colour
     , containers
+    , directory
     , exceptions
     , haskeline
     , mtl
@@ -79,6 +80,7 @@ executable CA-DSL-exe
     , base
     , colour
     , containers
+    , directory
     , exceptions
     , haskeline
     , mtl

@@ -34,6 +34,7 @@ dependencies:
 - parallel
 - transformers
 - aeson
+- directory
 #- text quiza sirve <-
 # - parsec
 # - containers

@@ -5,6 +5,7 @@ import Monads
 import Prelude
 import Control.Monad
 import Data.Char
+import Parse
 -- import qualified Data.Map.Strict as M
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
@@ -224,3 +225,13 @@ getNeighbours (x, y) gData =
             --show cuadr) 
             idCant -- TO DO borrar trace
 
+compileFile :: String -> IO (Either Error Env)
+compileFile file = do
+  putStrLn ("Abriendo " ++ file ++ "...")
+  x <- readFile file
+  case stmts_parse x of
+    Failed e -> return $ Left (ParsingError e)
+    Ok stmts -> case runStateError (loadMonad stmts) initEnv of
+                    Left err -> return $ Left err
+                    Right (v :!: s) -> do   putStrLn ("Run exitoso:\n" ++ show s ++ "\n")
+                                            return $ Right s

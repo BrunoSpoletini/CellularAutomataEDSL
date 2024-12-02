@@ -1,3 +1,10 @@
 DEFCELL test = (red, [1,2,3], [1,2,3,4,6])
+
+UPDATE (11,12) test
+UPDATE (11,13) test
+UPDATE (12,13) test
+UPDATE (13,13) test
+UPDATE (13,12) test
+UPDATE (13,11) test
 UPDATE (12,11) test
-UPDATE (12,10) test
+UPDATE (11,11) test

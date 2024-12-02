@@ -18,6 +18,8 @@ import qualified Data.Vector as V
 
 import Debug.Trace -- TO DO remove
 
+import System.Directory 
+
 import Common
 import Automata
 import Monads
@@ -28,13 +30,15 @@ setupFront window fileEnv = void $ do
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
 
-    fileUrl <- UI.loadFile "text/plain" "static/examples/testing.txt"
+    --fileUrl <- UI.loadFile "text/plain" "static/examples/testing.txt"
 
-    -- commsFile <- liftIO $ readFile "static/examples/testing.txt"
+    --commsFile <- liftIO $ compileFile "static/examples/testing.txt" -- Either Error Env
+    dirContents <- liftIO $ getDirectoryContents "static/examples"
+
 
     -- Header
     header <- UI.div #. "header"
-                     # set text "Cellular Automata"
+                     # set text (show dirContents)-- "Cellular Automata"
 
     -- Canvas
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) fileEnv
@@ -107,9 +111,18 @@ setupFront window fileEnv = void $ do
         commandsArray :: Event ([Comm] -> [Comm])
         commandsArray = fmap (:) interactions
 
+        -- commands :: (MonadState m, MonadError m) => Event (m () -> m ())
+        -- commands = fmap (>>) interactions --TO DO considerar este cambio
+        
     calcBehaviour <- accumB (Right fileEnv) commands -- aca hay que checkear si el env de entrada es correcto
 
     comHist <- accumB [] commandsArray 
+
+    -- case calcBehaviour of
+    --     Left err -> do 
+    --         element body # sink detectError err
+    --     Right env -> do 
+    --         element canvas # sink updateCanvas calcBehaviour
 
     element body # sink detectError calcBehaviour
 
