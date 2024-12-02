@@ -28,6 +28,10 @@ setupFront window fileEnv = void $ do
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
 
+    fileUrl <- UI.loadFile "text/plain" "static/examples/testing.txt"
+
+    -- commsFile <- liftIO $ readFile "static/examples/testing.txt"
+
     -- Header
     header <- UI.div #. "header"
                      # set text "Cellular Automata"
@@ -84,7 +88,7 @@ setupFront window fileEnv = void $ do
 
         -- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
         cellComm ::  [(Element, Comm)]
-        cellComm = zip (map fst cellButtPairL) (map (\cell -> Select (cId cell)) (drop 1 (fst $ snd fileEnv)))
+        cellComm = zip (map fst cellButtPairL) (map (\cell -> Select (name cell)) (drop 1 (fst $ snd fileEnv)))
 
         clickCell :: Event Comm
         clickCell = (foldr1 (UI.unionWith const) . map makeClick) cellComm
@@ -107,29 +111,17 @@ setupFront window fileEnv = void $ do
 
     comHist <- accumB [] commandsArray 
 
-
-
     element body # sink detectError calcBehaviour
 
     element canvas # sink updateCanvas calcBehaviour
 
     element console # sink updateConsole comHist
 
--- commToDiv :: Comm -> String -> String
--- commToDiv (Restart _) str = ""
--- commToDiv (Step) str =  if length str >= 4 then
---                             let subst = take 4 str
---                             if subst == "Step" then 
-                                
---                                 else "Step\n" ++ str
---                             -- (show x) ++ "\n" ++ str
---                             else "Step\n" ++ str
--- commToDiv x str = (show x) ++ "\n" ++ str
-
 commToString :: [Comm] -> String
 commToString [] = ""
 commToString ((Restart _):cs) = ""
 commToString (Step:cs) = resumeSteps cs 1
+commToString (Select n:cs) = "Select " ++ (map toUpper n) ++ "\n" ++ (commToString cs)
 commToString (c:cs) = (show c) ++ "\n" ++ (commToString cs)
 
 resumeSteps :: [Comm] -> Int -> String
@@ -185,11 +177,7 @@ updateCanvas = mkWriteAttr $ \either canvas ->
                 cells = snd env
                 autGrid = grid gridD
                 changedCells = changes gridD
-            -- canvas # UI.clearCanvas
-
             forM_ changedCells $ \(x, y)  -> do
-            -- forM_ [0.. height gridD-1] $ \y -> do
-            --     forM_ [0.. width gridD-1] $ \x -> do
                 let cellId = (autGrid V.! y) V.! x
                     cell = searchCellId env cellId
                 case cell of

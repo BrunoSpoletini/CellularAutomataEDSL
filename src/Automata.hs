@@ -4,6 +4,7 @@ import Common
 import Monads
 import Prelude
 import Control.Monad
+import Data.Char
 -- import qualified Data.Map.Strict as M
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
@@ -27,23 +28,23 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                               colour = "black", 
                               bornL = [3], 
                               surviveL  = [2,3] } 
-                highlifeCell = CellData { cId = 2, 
-                              name = "highlife", 
-                              colour = "blue",
-                              bornL = [3,6], 
-                              surviveL  = [2,3] }
-                seedsCell = CellData { cId = 3, 
-                              name = "seeds", 
-                              colour = "red",
-                              bornL = [2], 
-                              surviveL  = [] }
+                -- highlifeCell = CellData { cId = 2, 
+                --               name = "highlife", 
+                --               colour = "blue",
+                --               bornL = [3,6], 
+                --               surviveL  = [2,3] }
+                -- seedsCell = CellData { cId = 3, 
+                --               name = "seeds", 
+                --               colour = "red",
+                --               bornL = [2], 
+                --               surviveL  = [] }
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),
                                 limits = [0,0,0,0],
                                 changes = []
                                 }
-            in (gridD, ([deadCell, conwayCell, highlifeCell, seedsCell], conwayCell))
+            in (gridD, ([deadCell, conwayCell], conwayCell))--, highlifeCell, seedsCell
 
 -- State Monad with Error Handler
 newtype StateError a =
@@ -132,9 +133,15 @@ processComm Step = resolveStep
 processComm (Restart env) = do  let cuadr = grid (fst env)
                                 setEnv env
                                 storeChanges ([(i, j) | i <- [0..(V.length cuadr - 1)], j <- [0..(V.length (cuadr V.! 0) - 1)]])
-processComm (Select cellId) = do   cellData <- lookforCell (Id cellId)
-                                   env <- getEnv
-                                   setEnv (fst env, (fst $ snd env, cellData))
+processComm (Select name) = do  cellData <- lookforCell (Var name)
+                                env <- getEnv
+                                setEnv (fst env, (fst $ snd env, cellData))
+processComm _ = return ()
+
+loadMonad :: (MonadState m, MonadError m) => [Comm] -> m ()
+loadMonad [] = return ()
+loadMonad cs = foldr1 (>>) (map processComm cs)
+
 
 searchCellId :: Env -> CellId -> Maybe CellData
 searchCellId (gData, ([], _)) idCell = Nothing
@@ -143,7 +150,7 @@ searchCellId (gData, (c:cl, sel)) idCell =  if cId c == idCell then Just c
 
 searchCellName :: Env -> Variable -> Maybe CellData
 searchCellName (gData, ([], _)) var = Nothing
-searchCellName (gData, (c:cl, sel)) var =   if name c == var then Just c 
+searchCellName (gData, (c:cl, sel)) var =   if name c == (map toLower var) then Just c 
                                             else searchCellName (gData, (cl, sel)) var
 
 changeCell :: CellId -> Pos -> GridData -> Maybe GridData
@@ -162,7 +169,7 @@ changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 the
 
 createCell :: [CellData] -> Variable -> Variable -> [Int] -> [Int] -> CellData
 createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1, 
-                                            name = n, 
+                                            name = (map toLower n), 
                                             colour = col, 
                                             bornL = xs, 
                                             surviveL  = ys }

@@ -46,14 +46,21 @@ module Common where
                 | Step 
                 | CheckC Pos --pending
                 | DefCell Variable Variable [Int] [Int]
-                | Select CellId
+                | Select Variable
                 | Restart Env -- UI shortcut
         deriving (Show)
 
-    data Error = UndefCell | OutOfBounds | NameInUse
+    data Error = UndefCell | OutOfBounds | NameInUse | ParsingError String
         deriving (Eq, Show)
 
     type Env = (GridData, ([CellData], CellData))
+
+    -- type Env = { -- to do cambiar
+    --     gData :: GridData,
+    --     cList :: [CellData],
+    --     sel :: CellData
+    -- }
+
 
       -- Tipos de los nombres
     data Name =  Global  String

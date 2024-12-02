@@ -5,7 +5,7 @@ module Main where
 import           Control.Exception              ( catch
                                                 , IOException
                                                 )
-import           Control.Monad.Except
+-- import           Control.Monad.Except
 import           Data.Char
 import           Data.List
 import           Data.Maybe
@@ -17,8 +17,8 @@ import           System.IO               hiding ( print )
 -- import           Text.PrettyPrint.HughesPJ      ( render
 --                                                 , text
 --                                                 )
-import Control.Monad.State hiding (State)
-import Control.Monad.Except
+-- import Control.Monad.State hiding (State)
+-- import Control.Monad.Except
 
 import Data.Strict.Tuple hiding (fst, snd)
 
@@ -34,20 +34,41 @@ import           Front
 import           Common
 import           Parse
 import           Automata
+import           Monads
 
 import           Control.Parallel
 
+-- Lee un archivo de entrada y lo parsea
 main :: IO ()
-main = startGUI defaultConfig { jsStatic = Just "static"} setup --, jsLog = "Test" 
+main = do   resComp <- compileFile "static/examples/testing.txt"
+            case resComp of
+                Left err -> putStrLn (show err)
+                Right env -> startCA env
 
-setup :: Window -> UI ()
-setup window = setupFront window initEnv
+startCA :: Env -> IO ()
+startCA env = do
+    startGUI defaultConfig { jsStatic = Just "static"} (setup env) --, jsLog = "Test" 
 
-checkRun :: StateError () -> IO Env
-checkRun m =    let e = runStateError m initEnv 
-                in case e of
-                    (Left err) -> exitWith (ExitFailure 1)
-                    (Right (v :!: s)) -> return s
+setup :: Env -> Window -> UI ()
+setup env window = setupFront window env
+
+
+compileFile :: String -> IO (Either Error Env)
+compileFile file = do
+  putStrLn ("Abriendo " ++ file ++ "...")
+  x <- readFile file
+  case stmts_parse x of
+    Failed e -> return $ Left (ParsingError e)
+    Ok stmts -> case runStateError (loadMonad stmts) initEnv of
+                    Left err -> return $ Left err
+                    Right (v :!: s) -> do   putStrLn ("Run exitoso:\n" ++ show s ++ "\n")
+                                            return $ Right s
+
+-- checkRun :: StateError () -> IO Env
+-- checkRun m =    let e = runStateError m initEnv 
+--                 in case e of
+--                     (Left err) -> exitWith (ExitFailure 1)
+--                     (Right (v :!: s)) -> return s
 
 
 -- ioExceptionCatcher :: IOException -> IO (Maybe a)
