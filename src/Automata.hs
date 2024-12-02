@@ -86,7 +86,7 @@ instance MonadState StateError where
                                          
     addCell var col xs ys = StateError(\s -> 
         case runStateError (lookforCell (Var var)) s of
-            Left UndefCell -> Right (() :!: (fst s, ((cell : (fst (snd s)), snd(snd s))))) 
+            Left UndefCell -> Right (() :!: (fst s, (((fst (snd s) ++ [cell]), snd(snd s))))) 
                                 where cell = createCell (fst (snd s)) var col xs ys
             Right x -> Left NameInUse
         )
@@ -168,11 +168,11 @@ changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 the
                                 in Just g {grid = upper V.++ newMiddleRow V.++ lower}
 
 createCell :: [CellData] -> Variable -> Variable -> [Int] -> [Int] -> CellData
-createCell (c:cs) n col xs ys = CellData {  cId = cId c + 1, 
-                                            name = (map toLower n), 
-                                            colour = col, 
-                                            bornL = xs, 
-                                            surviveL  = ys }
+createCell cs n col xs ys = CellData {  cId = cId (last cs) + 1, 
+                                        name = (map toLower n), 
+                                        colour = col, 
+                                        bornL = xs, 
+                                        surviveL  = ys }
 
 printGrid :: Env -> String
 printGrid (gData, cList) = let g = grid gData

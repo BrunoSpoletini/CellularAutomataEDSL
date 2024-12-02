@@ -37,7 +37,7 @@ setupFront window fileEnv = void $ do
                      # set text "Cellular Automata"
 
     -- Canvas
-    (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize)
+    (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) fileEnv
     
     -- Selector de celulas
     cellButtPairL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
@@ -172,20 +172,38 @@ updateCanvas :: WriteAttr Element (Either Error Env)
 updateCanvas = mkWriteAttr $ \either canvas ->
     case either of
         Left err -> return ()
-        Right env -> do
-            let gridD = fst env
-                cells = snd env
-                autGrid = grid gridD
-                changedCells = changes gridD
-            forM_ changedCells $ \(x, y)  -> do
-                let cellId = (autGrid V.! y) V.! x
-                    cell = searchCellId env cellId
-                case cell of
-                    Nothing -> return ()
-                    Just c -> do
-                        let color = colour c
-                        drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
-                
+        Right env -> drawSquaresOpt canvas env
+
+-- Dibuja las celulas en el canvas segun los ultimos cambios realizados en la grid
+drawSquaresOpt :: Canvas -> Env -> UI ()
+drawSquaresOpt canvas env = do
+    let gridD = fst env
+        autGrid = grid gridD
+        changedCells = changes gridD
+    forM_ changedCells $ \(x, y)  -> do
+        let cellId = (autGrid V.! y) V.! x
+            cell = searchCellId env cellId
+        case cell of
+            Nothing -> return ()
+            Just c -> do
+                let color = colour c
+                drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
+
+-- Dibuja las celulas en el canvas segun cada elemento de la grid
+drawSquares :: Canvas -> Env -> UI ()
+drawSquares canvas env = do
+    let gridD = fst env
+        autGrid = grid gridD
+    forM_ [0..(V.length autGrid - 1)] $ \y -> do
+        forM_ [0..(V.length (autGrid V.! y) - 1)] $ \x -> do
+            let cellId = (autGrid V.! y) V.! x
+                cell = searchCellId env cellId
+            case cell of
+                Nothing -> return ()
+                Just c -> do
+                    let color = colour c
+                    drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
+
 -- Detecta el error en el step e inhabilita la UI
 detectError :: WriteAttr Element (Either Error Env)
 detectError = mkWriteAttr $ \either body -> do
@@ -213,10 +231,9 @@ getIndex canvas x y size =
 fromIntegralPoint :: (Int, Int) -> (Double, Double)
 fromIntegralPoint (x, y) =  (fromIntegral x, fromIntegral y)
 
-
 -- Draw the whole canvas
-drawCanvas :: Int -> Int -> UI (Element, Element)
-drawCanvas cellSize canvasSize = do
+drawCanvas :: Int -> Int -> Env -> UI (Element, Element)
+drawCanvas cellSize canvasSize env = do
      -- Static Canvas --
     canvasBase <- UI.canvas #. "static-canvas"
         # set UI.height canvasSize
@@ -236,6 +253,9 @@ drawCanvas cellSize canvasSize = do
     canvas <- UI.canvas #. "canvas shadow"
         # set UI.height canvasSize
         # set UI.width  canvasSize
+
+    -- Draw the actual state of the grid
+    drawSquares canvas env
 
     -- Canvas container
     canvasContainer <- UI.div #. "canvas-container main"
