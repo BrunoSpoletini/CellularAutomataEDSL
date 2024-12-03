@@ -24,11 +24,13 @@ import Common
 import Automata
 import Monads
 
-setupFront :: Window -> Env -> UI ()
-setupFront window fileEnv = void $ do
+setupFront :: Window -> [(String, Env)] -> UI ()
+setupFront window envs = void $ do
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
+
+    let fileEnv = initEnv
 
     --fileUrl <- UI.loadFile "text/plain" "static/examples/testing.txt"
 

@@ -26,7 +26,9 @@ import Data.IORef
 
 import System.Exit
 
-import           Graphics.UI.Threepenny      as UI hiding (map, grid)
+import System.Directory (getDirectoryContents)
+
+import           Graphics.UI.Threepenny      as UI hiding (map, grid, drop)
 import           Graphics.UI.Threepenny.Canvas as Canvas
 import           Graphics.UI.Threepenny.Core hiding (grid)
 
@@ -38,21 +40,41 @@ import           Monads
 
 import           Control.Parallel
 
--- Lee un archivo de entrada y lo parsea
+-- Lee los archivos de entrada y los parsea
 main :: IO ()
-main = do   resComp <- compileFile "static/examples/testing.txt"
-            case resComp of
+main = do   res <- compileFiles
+            case res of
                 Left err -> putStrLn (show err)
-                Right env -> startCA env
+                Right envs -> startCA envs
 
-startCA :: Env -> IO ()
-startCA env = do
-    startGUI defaultConfig { jsStatic = Just "static"} (setup env) --, jsLog = "Test" 
+startCA :: [(String, Env)] -> IO ()
+startCA envs = do
+    startGUI defaultConfig { jsStatic = Just "static"} (setup envs) --, jsLog = "Test" 
 
-setup :: Env -> Window -> UI ()
-setup env window = setupFront window env
+setup :: [(String, Env)] -> Window -> UI ()
+setup envs window = setupFront window envs
 
 
+-- Parsea un archivo, corre la monada y devuelve el entorno o un error
+compileFile :: String -> IO (Either Error Env)
+compileFile file = do
+  putStrLn ("Abriendo " ++ file ++ "...")
+  x <- readFile file
+  case stmts_parse x of
+    Failed e -> return $ Left (ParsingError e)
+    Ok stmts -> case runStateError (loadMonad stmts) initEnv of
+                    Left err -> return $ Left err
+                    Right (v :!: s) -> return $ Right s
+
+-- Carga los archivos de la carpeta ejemplos o devuelve un error
+compileFiles :: IO (Either Error [(String, Env)])
+compileFiles = do
+    files <- drop 2 <$> getDirectoryContents "static/examples"
+    let files' = map (\f -> "static/examples/" ++ f) files
+    res <- mapM compileFile files'
+    case sequence res of
+        Left err -> return (Left err)
+        Right envs -> return (Right (Prelude.zip files envs))
 
 
 -- checkRun :: StateError () -> IO Env

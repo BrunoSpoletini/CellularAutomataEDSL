@@ -1,0 +1,12 @@
+DEFCELL test = (red, [1,2,3], [1,2,3,4,6])
+DEFCELL highlife = (blue, [3,6], [2,3])asd
+
+
+UPDATE (11,12) test
+UPDATE (11,13) test
+UPDATE (12,13) test
+UPDATE (13,13) test
+UPDATE (13,12) test
+UPDATE (13,11) test
+UPDATE (12,11) test
+UPDATE (11,11) test
