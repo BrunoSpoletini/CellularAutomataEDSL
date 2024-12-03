@@ -21,6 +21,7 @@
     max-height: 270px;
     overflow-y: auto;
     overflow-x: hidden;
+    margin: 50px;
 }
 
 .ui.vertical.menu .item {
@@ -93,6 +94,74 @@
     box-shadow: inset -9px 5px 19px 0px #222;
     backdrop-filter: blur(5px); 
 }
+
+.leftContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    height: 100%;
+}
+
+.enviromentSelector{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    height: 350px;
+    width: 400px;
+    align-content: flex-start;
+    overflow-y: scroll;
+}
+
+/* Scale down all canvas-containers inside an enviroment */
+.enviromentSelector .canvas-container{
+    height: auto;
+    width: auto;
+    transform: scale(0.45);
+    position: relative;
+}
+
+/* Dejar oculto cuando no esta el mouse encima */
+.enviromentSelector .canvas{
+    position: relative;
+    cursor: pointer;
+    filter: brightness(80%);
+}
+
+
+
+.enviroment{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 250px;
+    height: 285px;
+    justify-content: center;
+}
+
+.enviromentName {
+    padding: 5px;
+    font-size: 20px;
+    pointer-events: none;
+    position: relative;
+    width: 227px;
+    background: rgba(192 193 189);
+    top: 158px;
+    border-style: double;
+    user-select: none;
+
+}
+
+.enviromentSelector .enviroment:hover > .canvas-container > .canvas{
+    filter: brightness(100%);
+}
+
+.enviromentSelector .enviroment:hover > .enviromentName{
+    background: rgb(255 255 255);
+}
+
 
 /* CA Canvas */
 .canvas-container{

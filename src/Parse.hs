@@ -344,7 +344,7 @@ catchP m k = \s l -> case m s l of
                         Failed e -> k e s l
 
 happyError :: P a
-happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error\n"++(s)
+happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error"++(s)
 
 data Token = 
         TEquals

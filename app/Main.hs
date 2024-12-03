@@ -40,20 +40,20 @@ import           Monads
 
 import           Control.Parallel
 
--- Lee los archivos de entrada y los parsea
+
 main :: IO ()
 main = do   res <- compileFiles
             case res of
-                Left err -> putStrLn (show err)
+                Left err -> errorHandler err
                 Right envs -> startCA envs
 
+-- Inicia la GUI
 startCA :: [(String, Env)] -> IO ()
 startCA envs = do
     startGUI defaultConfig { jsStatic = Just "static"} (setup envs) --, jsLog = "Test" 
 
 setup :: [(String, Env)] -> Window -> UI ()
 setup envs window = setupFront window envs
-
 
 -- Parsea un archivo, corre la monada y devuelve el entorno o un error
 compileFile :: String -> IO (Either Error Env)
@@ -70,11 +70,31 @@ compileFile file = do
 compileFiles :: IO (Either Error [(String, Env)])
 compileFiles = do
     files <- drop 2 <$> getDirectoryContents "static/examples"
-    let files' = map (\f -> "static/examples/" ++ f) files
-    res <- mapM compileFile files'
-    case sequence res of
-        Left err -> return (Left err)
-        Right envs -> return (Right (Prelude.zip files envs))
+    if filter ("default.txt" == ) files == [] then
+        return $ Left DefaultFileNotFound
+    else do
+        comp files where
+        comp :: [String] -> IO (Either Error [(String, Env)])
+        comp [] = return (Right [])
+        comp (f:fs) = do
+            res <- compileFile ("static/examples/" ++ f)
+            case res of
+                Left err -> return (Left err)
+                Right env -> do
+                    res' <- comp fs
+                    case res' of
+                        Left err -> return (Left err)
+                        Right envs -> return (Right ((f, env) : envs))
+
+errorHandler :: Error -> IO ()
+errorHandler err = do 
+    putStr "Error: "
+    case err of
+        DefaultFileNotFound -> putStrLn "No se encontró el archivo default.txt"
+        UndefCell -> putStrLn "Celula no definida"
+        OutOfBounds -> putStrLn "Fuera de los límites de la grilla"
+        NameInUse -> putStrLn "El nombre ya está en uso"
+        ParsingError e -> putStrLn e
 
 
 -- checkRun :: StateError () -> IO Env

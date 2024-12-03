@@ -50,7 +50,7 @@ module Common where
                 | Restart Env -- UI shortcut
         deriving (Show)
 
-    data Error = UndefCell | OutOfBounds | NameInUse | ParsingError String
+    data Error = DefaultFileNotFound | UndefCell | OutOfBounds | NameInUse | ParsingError String
         deriving (Eq, Show)
 
     type Env = (GridData, ([CellData], CellData))

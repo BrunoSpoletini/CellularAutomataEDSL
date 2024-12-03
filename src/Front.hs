@@ -29,18 +29,13 @@ setupFront window envs = void $ do
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
+    url <- UI.loadFile "image/png" "static/triangulos.png"
 
-    let fileEnv = initEnv
-
-    --fileUrl <- UI.loadFile "text/plain" "static/examples/testing.txt"
-
-    --commsFile <- liftIO $ compileFile "static/examples/testing.txt" -- Either Error Env
-    dirContents <- liftIO $ getDirectoryContents "static/examples"
-
+    let fileEnv = snd $ filter (\(n, _) -> n == "default.txt") envs !! 0
 
     -- Header
     header <- UI.div #. "header"
-                     # set text (show dirContents)-- "Cellular Automata"
+                     # set text "Cellular Automata"
 
     -- Canvas
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) fileEnv
@@ -63,15 +58,20 @@ setupFront window envs = void $ do
     -- Botones de control
     (playContainer, reset) <- timeController timer console cellButtPairL
 
-    url <- UI.loadFile "image/png" "static/triangulos.png"
+    -- Selector de entorno
+    (envSel, envSelList) <- envSelector envs fileEnv
+
     body <- UI.div #. "page-container" 
                    # set UI.style [("background-image", "url(" ++ url ++ ")"), ("background-size", "cover")]
                 #+ [
                     element header,
                     UI.div #. "displayRow" #+ 
                     [
-                        UI.div #. "menu"
-                           #+ [element playContainer, element reset],
+                        UI.div #. "leftContainer" #+
+                            [ UI.div #. "menu"
+                                #+ [element playContainer, element reset],
+                                element envSel
+                            ],
                         element canvasContainer,
 
                         UI.div #. "cellSelectConsole" #+
@@ -96,8 +96,16 @@ setupFront window envs = void $ do
         cellComm ::  [(Element, Comm)]
         cellComm = zip (map fst cellButtPairL) (map (\cell -> Select (name cell)) (drop 1 (fst $ snd fileEnv)))
 
+        envComm :: [(Element, Comm)]
+        envComm = zip envSelList (map (\(_, e) -> Restart e) envs)
+
+        clickEnv :: Event Comm
+        clickEnv = (foldr1 (UI.unionWith const) . map makeClick) envComm
+                    where
+                        makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
+
         clickCell :: Event Comm
-        clickCell = (foldr1 (UI.unionWith const) . map makeClick) cellComm
+        clickCell = (foldr1 (UI.unionWith const) . map makeClick) cellComm -- TO DO fix duplicated code
                     where
                         makeClick (elmnt, cmd) = UI.pure cmd <@ UI.click elmnt
 
@@ -105,7 +113,7 @@ setupFront window envs = void $ do
         timerTick = const Step <$> UI.tick timer
 
         interactions :: Event Comm
-        interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell, timerTick]
+        interactions = foldr1 (UI.unionWith const) [clickReset, clickCanvas, clickCell, timerTick, clickEnv]
 
         commands :: Event (Either Error Env -> Either Error Env)
         commands = fmap evalUp interactions
@@ -132,9 +140,10 @@ setupFront window envs = void $ do
 
     element console # sink updateConsole comHist
 
+
 commToString :: [Comm] -> String
 commToString [] = ""
-commToString ((Restart _):cs) = ""
+commToString ((Restart e):cs) = ""
 commToString (Step:cs) = resumeSteps cs 1
 commToString (Select n:cs) = "Select " ++ (map toUpper n) ++ "\n" ++ (commToString cs)
 commToString (c:cs) = (show c) ++ "\n" ++ (commToString cs)
@@ -254,12 +263,13 @@ drawCanvas cellSize canvasSize env = do
         # set UI.height canvasSize
         # set UI.width  canvasSize
         # set UI.strokeStyle "black"
+        # set UI.lineWidth 1
 
     -- Draw grid on Static Canvas
     forM_ [0,cellSize..canvasSize] $ \x -> do
         UI.moveTo (fromIntegralPoint (x, 0)) canvasBase
         UI.lineTo (fromIntegralPoint (x, canvasSize)) canvasBase
-
+        UI.stroke canvasBase
         UI.moveTo (fromIntegralPoint (0, x)) canvasBase
         UI.lineTo (fromIntegralPoint (canvasSize, x)) canvasBase
         UI.stroke canvasBase
@@ -320,3 +330,26 @@ timeController timer console bs = do
 
     element playContainer #+ [element play, element pause]
     return (playContainer, reset)
+
+
+envSelector ::  [(String, Env)] -> Env -> UI (Element, [Element])
+envSelector envs fileEnv = do
+    envSel <- UI.div #. "enviromentSelector"
+    envOpts <- envSelector' envs
+    element envSel #+ (map element envOpts)
+    return (envSel, envOpts)
+
+envSelector' :: [(String, Env)] -> UI [Element]
+envSelector' [] = return empty
+envSelector' ((name, env):es) = do
+    (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) env
+
+    option <- UI.div #. "enviroment"
+                     #+ [   UI.div #. "enviromentName" # set text (map toUpper $ take ((length name) - 4) name),
+                            element canvasContainer
+                        ]
+    envOpts <- envSelector' es
+    return $ option:envOpts
+
+
+    

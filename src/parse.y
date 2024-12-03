@@ -7,28 +7,12 @@ import Data.Tuple
 }
 
 %monad { P } { thenP } { returnP }
---%name command Com
---%name commands Coms
 
 %name parseStmt Comm
 %name parseStmts Comms
 
--- %name parseStmtAsk Check
--- %name parseStmtsDefs Comms
-
 %tokentype { Token }
 %lexer {lexer} {TEOF}
---%error { parseError }
-
--- %right VAR
-
--- %left '=' 
--- %right '->'
--- %right FST SND
--- %right SUC
--- %right REC 
--- %right '\\' '.' LET 
--- %%
 
 -- Limpiar tokens sin uso
 %token
@@ -65,7 +49,7 @@ NList       : INT NList             { $1 : $2 }
 Position    : '(' INT ',' INT ')'   { ($2, $4) }
 
 lineno      :: { LineNumber }
-             : {- empty -}      {% getLineNo }
+             : {% getLineNo }
 
 {
 data ParseResult a = Ok a | Failed String
@@ -74,10 +58,6 @@ data ParseResult a = Ok a | Failed String
 type LineNumber = Int
 type P a = String -> LineNumber -> ParseResult a
 
--- parseError :: Token -> P a
--- parseError = getLineNo `thenP` \line ->
---             failP (show line ++ ": parse error")
-    
 getLineNo :: P LineNumber
 getLineNo = \s l -> Ok l
 
@@ -98,7 +78,7 @@ catchP m k = \s l -> case m s l of
                         Failed e -> k e s l
 
 happyError :: P a
-happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error\n"++(s)
+happyError = \ s i -> Failed $ "Line "++(show (i::LineNumber))++": Parsing Error\n"
 
 data Token = 
         TEquals
@@ -131,7 +111,7 @@ lexer cont s = case s of
                 ('[':cs) -> cont TBrackO cs
                 (']':cs) -> cont TBrackC cs
                 unknown 	-> \line -> Failed $ 
-                 "Line "++(show line)++": Cannot be recognized "++(show $ take 10 unknown)++ "..."
+                 "Line "++(show line)++": Cannot be recognized "++(show $ take 10 unknown)++ "...\n"
                 where   lexNum cs = cont (TInt (read num)) rest
                             where (num,rest) = span isDigit cs
                         lexVar cs =
@@ -141,9 +121,6 @@ lexer cont s = case s of
                                 ("CHECK", rest) -> cont TCheck rest
                                 ("UPDATE", rest) -> cont TUpdate rest
                                 (var, rest)   -> cont (NVar var) rest
-
--- stmtAsk_parse s = parseStmtAsk s 1
--- stmtDefs_parse s = parseStmtsDefs s 1
 
 stmts_parse s = parseStmts s 1
 stmt_parse s = parseStmt s 1

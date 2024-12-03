@@ -1,6 +1,5 @@
 DEFCELL test = (red, [1,2,3], [1,2,3,4,6])
-DEFCELL highlife = (blue, [3,6], [2,3])asd
-
+DEFCELL highlife = (blue, [3,6], [2,3])
 
 UPDATE (11,12) test
 UPDATE (11,13) test
