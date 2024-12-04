@@ -27,6 +27,7 @@ library
   exposed-modules:
       Automata
       Common
+      Config
       Front
       Monads
       Parse

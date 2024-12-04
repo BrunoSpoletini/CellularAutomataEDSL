@@ -82,6 +82,29 @@
     flex-direction: column;
 }
 
+
+/* Labels del selector de celulas */
+.ui.label{
+    min-height: 20px;
+}
+
+.ui.vertical.menu .item:not(.active)>.left.pointing.label {
+    display: none;
+}
+
+.ui.vertical.menu .item:not(.active)>.label:not(.pointing) {
+    display: block;
+}
+
+.ui.vertical.menu .item.active>.left.pointing.label {
+    display: block;
+}
+
+.ui.vertical.menu .item.active>.label:not(.pointing) {
+    display: none;
+}
+
+
 .container {
     text-align: center;
     padding: 20px 20px;

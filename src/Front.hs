@@ -24,6 +24,9 @@ import Common
 import Automata
 import Monads
 
+import Config
+
+
 setupFront :: Window -> [(String, Env)] -> UI ()
 setupFront window envs = void $ do
     UI.addStyleSheet window "grid.css"
@@ -41,9 +44,9 @@ setupFront window envs = void $ do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) fileEnv
     
     -- Selector de celulas
-    cellButtPairL <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv)
+    cellButtons <- drawCellList (fst $ snd fileEnv) (snd $ snd fileEnv) maxCells
     cellSel <- UI.div #. "ui vertical menu"
-                      #+ (  map element $ map fst cellButtPairL )
+                      #+ (  map element $ cellButtons )
 
     -- Console
     console <- UI.div #. "ui segment console"
@@ -56,7 +59,7 @@ setupFront window envs = void $ do
             # set UI.running False
 
     -- Botones de control
-    (playContainer, reset) <- timeController timer console cellButtPairL
+    (playContainer, reset) <- timeController timer console cellButtons
 
     -- Selector de entorno
     (envSel, envSelList) <- envSelector envs fileEnv
@@ -94,7 +97,7 @@ setupFront window envs = void $ do
 
         -- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
         cellComm ::  [(Element, Comm)]
-        cellComm = zip (map fst cellButtPairL) (map (\cell -> Select (name cell)) (drop 1 (fst $ snd fileEnv)))
+        cellComm = zip cellButtons (map (\cell -> Select (name cell)) (drop 1 (fst $ snd fileEnv)))
 
         envComm :: [(Element, Comm)]
         envComm = zip envSelList (map (\(_, e) -> Restart e) envs)
@@ -128,17 +131,21 @@ setupFront window envs = void $ do
 
     comHist <- accumB [] commandsArray 
 
-    -- case calcBehaviour of
-    --     Left err -> do 
-    --         element body # sink detectError err
-    --     Right env -> do 
-    --         element canvas # sink updateCanvas calcBehaviour
-
     element body # sink detectError calcBehaviour
 
     element canvas # sink updateCanvas calcBehaviour
 
+
+
+    -- actualizar la lista de celulas
+    --element cellSel # sink updateCellList calcBehaviour
+    sink updateCellList calcBehaviour $ pure cellButtons
+
+    -- cellButtons
+
     element console # sink updateConsole comHist
+
+
 
 
 commToString :: [Comm] -> String
@@ -159,37 +166,64 @@ updateConsole = mkWriteAttr $ \comHist console -> do
     element console # set text (commToString comHist)
     return ()
 
-drawCellList :: [CellData] -> CellData -> UI [(Element, Element)]
-drawCellList (dCell:cL) selected =  do  cellButtPairL <- drawCellList' cL selected
-                                        let
-                                            cellButtL = map fst cellButtPairL
-                                            cellButLabelL = map snd cellButtPairL
-                                        forM_ cellButtPairL $ \(cellDiv, cellLab) ->
-                                            on UI.click cellDiv $ const $ do
-                                                forM_ cellButtPairL $ \(cellD, cellL) -> do
-                                                    element cellD # set (attr "class") "item"
-                                                    element cellL # set (attr "class") "ui label"
-                                                element cellDiv # set (attr "class") "item active"
-                                                element cellLab # set (attr "class") "ui left pointing label"
-                                        return cellButtPairL
+drawCellList :: [CellData] -> CellData -> Int -> UI [Element]
+drawCellList (dCell:cL) selected maxCells =  do  
+    cellButtons <- drawCellList' cL selected maxCells
+    forM_ cellButtons $ \cellDiv ->
+        on UI.click cellDiv $ const $ do
+            forM_ cellButtons $ \cellD -> do
+                element cellD # set (attr "class") "item"
+            element cellDiv # set (attr "class") "item active"
+    return cellButtons
 
-drawCellList' :: [CellData] -> CellData -> UI [(Element, Element)]
-drawCellList' [] selected = return empty
-drawCellList' (c:cs) selected = do  let nombre = name c
-                                        id = cId c
-                                        itemSel = if c == selected then "item active" else "item"
-                                        labelSel = if c == selected then "ui left pointing label" else "ui label"
-                                        color = colour c
+drawCellList' :: [CellData] -> CellData -> Int -> UI [Element]
+drawCellList' _ selected 0 = return []
+drawCellList' [] selected maxCells = do
+    cellDiv <- UI.a #. "item"
+        # set style [("font-size", "20px"), ("display", "none")]
+    cellDivs <- drawCellList' [] selected (maxCells - 1)
+    return $ cellDiv : cellDivs
+drawCellList' (c:cs) selected maxCells = do  
+    let nombre = name c
+        itemSel = if c == selected then "item active" else "item"
+        color = colour c
+    cellDiv <- UI.a #. itemSel
+        # set UI.text (map toUpper nombre)
+        # set style [("font-size", "20px")]
+    cellLabelActive <- UI.div   #. "ui left pointing label"
+                                # set style [("background-color", color)]
+    cellLabelInactive <- UI.div #. "ui label"
+                                # set style [("background-color", color)]
+    element cellDiv #+ [element cellLabelActive, element cellLabelInactive]
+    cellDivs <- drawCellList' cs selected (maxCells - 1)
+    return $ cellDiv : cellDivs
 
-                                    cellDiv <- UI.a #. itemSel
-                                        # set UI.text (map toUpper nombre)
-                                        # set style [("font-size", "20px")]
-                                    cellLabel <- UI.div #. labelSel
-                                                        # set style [("background-color", color), ("min-height", "20px")]
-                                    element cellDiv #+ [element cellLabel]
+updateCellList :: WriteAttr [Element] (Either Error Env)
+updateCellList = mkWriteAttr $ \either cellButtons -> do
+    case either of
+        Left err -> return ()
+        Right env -> do
+            --element cellSel # set children []
+            let cellData = drop 1 $ fst $ snd env
+                selectedCell = snd $ snd env
+                cellPair = zip cellData cellButtons
+            --cellList <- drawCellList cellData selectedCell maxCells
+            --element cellSel #+ (map element cellList)
+            forM_ cellButtons $ \but -> do
+                element but # set style [("display", "none")]
+            forM_ cellPair $ \(cell, but) -> do
+                element but # set children []
+                let color = colour cell
+                cellLabelActive <- UI.div   #. "ui left pointing label"
+                                            # set style [("background-color", color)]
+                cellLabelInactive <- UI.div #. "ui label"
+                                            # set style [("background-color", color)]  
+                element but # set UI.text (map toUpper $ name cell)
+                element but # set style [("display", "block")]
+                element but #+ [element cellLabelActive, element cellLabelInactive]
+            
+            return ()
 
-                                    cellDivs <- drawCellList' cs selected
-                                    return $ (cellDiv, cellLabel) : cellDivs
 
 -- Actualiza el canvas con el estado actual del enviroment
 updateCanvas :: WriteAttr Element (Either Error Env)
@@ -289,7 +323,7 @@ drawCanvas cellSize canvasSize env = do
         #+ [element canvas, element canvasBase]
     return (canvasContainer, canvas)
 
-timeController :: UI.Timer -> Element -> [(Element, Element)] -> UI (Element, Element)
+timeController :: UI.Timer -> Element -> [Element] -> UI (Element, Element)
 timeController timer console bs = do
     playContainer <- UI.div #. "ui vertical menu"
 
@@ -320,12 +354,10 @@ timeController timer console bs = do
         element play # set style [("display", "block")]
         element pause # set style [("display", "none")]
         -- seteamos la lista de botones a inactivos y activamos el primero
-        forM_ bs $ \(cellDiv, cellLab) -> do
+        forM_ bs $ \cellDiv -> do
             element cellDiv # set (attr "class") "item"
-            element cellLab # set (attr "class") "ui label"
-        let (cDiv, cLab) = head bs
+        let cDiv = head bs
         element cDiv # set (attr "class") "item active"
-        element cLab # set (attr "class") "ui left pointing label"
         element console # set children []
 
     element playContainer #+ [element play, element pause]
