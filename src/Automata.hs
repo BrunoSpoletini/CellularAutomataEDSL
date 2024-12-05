@@ -10,11 +10,10 @@ import Parse
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
 
+import Config
+
 -- Enviroments
 -- type Env = (GridData, ([CellData], CellData))
-
-cellSize = 20 :: Double --20
-canvasSize = 500 :: Double --Default: 500
 
 -- Init enviroment
 initEnv :: Env
