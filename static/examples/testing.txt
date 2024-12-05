@@ -1,5 +1,5 @@
 DEFCELL test = (red, [1,2,3], [1,2,3,4,6])
-
+DEFCELL rompe = (green, [1,2,3,4], [1,2,3,4,6])
 UPDATE (11,12) test
 UPDATE (11,13) test
 UPDATE (12,13) test

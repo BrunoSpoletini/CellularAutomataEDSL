@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use lambda-case" #-}
+{-# LANGUAGE RecursiveDo #-}
+
 module Front
     where
 
@@ -27,14 +29,14 @@ import Monads
 import Config
 
 
-setupFront :: Window -> [(String, Env)] -> UI ()
-setupFront window envs = void $ do
+setupFront :: Window -> Env -> [(String, Env)] -> UI ()
+setupFront window fileEnv envs = void $ do
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
     url <- UI.loadFile "image/png" "static/triangulos.png"
 
-    let fileEnv = snd $ filter (\(n, _) -> n == "default.txt") envs !! 0
+    --let fileEnv = snd (envs!!0)--snd $ filter (\(n, _) -> n == "default.txt") envs !! 0
 
     -- Header
     header <- UI.div #. "header"
@@ -86,7 +88,18 @@ setupFront window envs = void $ do
 
     getBody window #+ [ pure body ]
 
+
+
+    --actualEnv :: Env
+    --actualEitherEnv <- currentValue calcBehaviour
+
+
     let
+
+        -- actualEnv = case actualEitherEnv of
+        --     Left _ -> fileEnv
+        --     Right e -> e
+
         clickReset :: Event Comm 
         clickReset = const (Restart fileEnv) <$> UI.click reset
 
@@ -96,6 +109,8 @@ setupFront window envs = void $ do
                         UI.mousedown canvas
 
         -- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
+
+
         cellComm ::  [(Element, Comm)]
         cellComm = zip cellButtons (map (\cell -> Select (name cell)) (drop 1 (fst $ snd fileEnv)))
 
@@ -127,6 +142,7 @@ setupFront window envs = void $ do
         -- commands :: (MonadState m, MonadError m) => Event (m () -> m ())
         -- commands = fmap (>>) interactions --TO DO considerar este cambio
         
+    -- calcBehaviour :: Behavior (Either Error Env)
     calcBehaviour <- accumB (Right fileEnv) commands -- aca hay que checkear si el env de entrada es correcto
 
     comHist <- accumB [] commandsArray 
@@ -134,6 +150,8 @@ setupFront window envs = void $ do
     element body # sink detectError calcBehaviour
 
     element canvas # sink updateCanvas calcBehaviour
+
+
 
 
 
@@ -203,12 +221,9 @@ updateCellList = mkWriteAttr $ \either cellButtons -> do
     case either of
         Left err -> return ()
         Right env -> do
-            --element cellSel # set children []
             let cellData = drop 1 $ fst $ snd env
                 selectedCell = snd $ snd env
                 cellPair = zip cellData cellButtons
-            --cellList <- drawCellList cellData selectedCell maxCells
-            --element cellSel #+ (map element cellList)
             forM_ cellButtons $ \but -> do
                 element but # set style [("display", "none")]
             forM_ cellPair $ \(cell, but) -> do
@@ -360,6 +375,7 @@ timeController timer console bs = do
         element cDiv # set (attr "class") "item active"
         element console # set children []
 
+
     element playContainer #+ [element play, element pause]
     return (playContainer, reset)
 
@@ -368,18 +384,26 @@ envSelector ::  [(String, Env)] -> Env -> UI (Element, [Element])
 envSelector envs fileEnv = do
     envSel <- UI.div #. "enviromentSelector"
     envOpts <- envSelector' envs
+    
+    -- forM_ (zip envOpts envs) $ \(opt, env) -> do
+    --     on UI.click opt $ const $ do
+    --         window <- askWindow
+    --         getBody window # set children []
+    --         setupFront window (snd env) envs
+
     element envSel #+ (map element envOpts)
     return (envSel, envOpts)
 
 envSelector' :: [(String, Env)] -> UI [Element]
 envSelector' [] = return empty
-envSelector' ((name, env):es) = do
+envSelector' envsP@((name, env):es) = do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) env
 
     option <- UI.div #. "enviroment"
                      #+ [   UI.div #. "enviromentName" # set text (map toUpper $ take ((length name) - 4) name),
                             element canvasContainer
                         ]
+
     envOpts <- envSelector' es
     return $ option:envOpts
 

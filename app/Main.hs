@@ -53,7 +53,8 @@ startCA envs = do
     startGUI defaultConfig { jsStatic = Just "static"} (setup envs) --, jsLog = "Test" 
 
 setup :: [(String, Env)] -> Window -> UI ()
-setup envs window = setupFront window envs
+setup envs window = let def = snd $ filter (\(n, _) -> n == "default.txt") envs !! 0
+                    in setupFront window def envs 
 
 -- Parsea un archivo, corre la monada y devuelve el entorno o un error
 compileFile :: String -> IO (Either Error Env)
