@@ -23,28 +23,13 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                                     colour = "rgb(240 241 236)", 
                                     bornL = [], 
                                     surviveL  = [1,2,3,4,5,6,7,8] }
-                conwayCell = CellData { cId = 1, 
-                              name = "conway", 
-                              colour = "black", 
-                              bornL = [3], 
-                              surviveL  = [2,3] } 
-                -- highlifeCell = CellData { cId = 2, 
-                --               name = "highlife", 
-                --               colour = "blue",
-                --               bornL = [3,6], 
-                --               surviveL  = [2,3] }
-                -- seedsCell = CellData { cId = 3, 
-                --               name = "seeds", 
-                --               colour = "red",
-                --               bornL = [2], 
-                --               surviveL  = [] }
                 gridD = GridData { height = size, -- to be changed
                                 width = size, -- to be changed
                                 grid = V.fromList (replicate size (V.fromList (replicate size 0))),
                                 limits = [0,0,0,0],
                                 changes = []
                                 }
-            in (gridD, ([deadCell, conwayCell], conwayCell))--, highlifeCell, seedsCell
+            in (gridD, ([deadCell], deadCell))
 
 -- State Monad with Error Handler
 newtype StateError a =
@@ -133,14 +118,15 @@ processComm Step = resolveStep
 processComm (Restart env) = do  let cuadr = grid (fst env)
                                 setEnv env
                                 storeChanges ([(i, j) | i <- [0..(V.length cuadr - 1)], j <- [0..(V.length (cuadr V.! 0) - 1)]])
-processComm (Select name) = do  cellData <- lookforCell (Var name)
-                                env <- getEnv
-                                setEnv (fst env, (fst $ snd env, cellData))
+processComm (Select ident) = do     cellData <- lookforCell ident
+                                    env <- getEnv
+                                    setEnv (fst env, (fst $ snd env, cellData))
+
 processComm _ = return ()
 
 loadMonad :: (MonadState m, MonadError m) => [Comm] -> m ()
 loadMonad [] = return ()
-loadMonad cs = foldr1 (>>) (map processComm cs)
+loadMonad cs = foldr1 (>>) (map processComm (cs++[Select (Id 1)]))
 
 
 searchCellId :: Env -> CellId -> Maybe CellData

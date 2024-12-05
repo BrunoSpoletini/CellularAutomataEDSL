@@ -23,7 +23,7 @@ cells envs =  concat (map (\(fileName, (gridData, (cellsD, sel))) -> drop 1 cell
 
 -- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
 cellComm ::  [Element] -> [(String, Env)] -> [(Element, Comm)]
-cellComm cellButtons envs = zip cellButtons (map (\cell -> Select (name cell)) (cells envs))
+cellComm cellButtons envs = zip cellButtons (map (\cell -> Select (Var $ name cell)) (cells envs))
 
 envComm :: [Element] -> [(String, Env)] -> [(Element, Comm)]
 envComm envSelList envs = zip envSelList (map (\(_, e) -> Restart e) envs)

@@ -21,6 +21,7 @@ module Common where
     type Variable = String
 
     data Ident = Id CellId | Var Variable
+        deriving (Show, Eq)
 
     type Grid =  V.Vector ( V.Vector CellId)
 
@@ -46,7 +47,7 @@ module Common where
                 | Step 
                 | CheckC Pos --pending
                 | DefCell Variable Variable [Int] [Int]
-                | Select Variable
+                | Select Ident
                 | Restart Env -- UI shortcut
         deriving (Show)
 

@@ -28,6 +28,7 @@ library
       Automata
       BehaviourManager
       Common
+      Components
       Config
       Front
       Monads
