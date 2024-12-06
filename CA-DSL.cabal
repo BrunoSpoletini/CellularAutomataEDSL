@@ -33,6 +33,7 @@ library
       Front
       Monads
       Parse
+      PrettyPrint
   other-modules:
       Paths_CA_DSL
   autogen-modules:

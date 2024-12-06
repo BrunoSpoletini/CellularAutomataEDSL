@@ -29,10 +29,11 @@ import Monads
 import Components
 import BehaviourManager
 import Config
+import PrettyPrint
 
 
-setupFront :: Window -> [(String, Env)] -> UI ()
-setupFront window envs = void $ do
+setupFront :: Window -> [(String, Env)] -> [[Comm]] -> UI ()
+setupFront window envs commsL = void $ do
     UI.addStyleSheet window "grid.css"
     UI.addStyleSheet window "semantic.min.css"
     pure window # set UI.title "Cellular Automata"
@@ -53,7 +54,6 @@ setupFront window envs = void $ do
     -- Console
     console <- UI.div #. "ui segment console"
         # set (attr "contenteditable") "false"
-        # set text "Historial de comandos"
 
     -- Timer
     timer <- UI.timer
@@ -95,12 +95,11 @@ setupFront window envs = void $ do
         
     calcBehaviour <- accumB (Right fileEnv) transitionEvents
 
-    --currentValue <- stepper (Right fileEnv) calcBehaviour
-
     comHistBehaviour <- accumB [] commandsEvents 
 
     -- Actualizamos la GUI
-    sink updateConsole comHistBehaviour $ pure console
+    --selName <- getSelectedCell calcBehaviour
+    sink updateConsole comHistBehaviour $ pure ( zip (map snd envs) commsL, console)
     sink updateGUI calcBehaviour $ pure (canvas, cellButtons, envs, body)
 
 updateGUI :: WriteAttr (Canvas, [Element], [(String, Env)], Element) (Either Error Env)
@@ -109,8 +108,11 @@ updateGUI = mkWriteAttr $ \either (canvas, cellButtons, envs, body) -> do
         Left err -> handleError body
         Right env -> drawSquaresOpt canvas env
 
-updateConsole :: WriteAttr Element [Comm]
-updateConsole = mkWriteAttr $ \comHist console -> do
+updateConsole :: WriteAttr ([(Env, [Comm])], Element) [Comm] 
+updateConsole = mkWriteAttr $ \comHist (envsP, console) -> do
+    let initComms = snd.head $ envsP
+        selectedName = getFirstCellName initComms
     element console # set children []
-    element console # set text (commToString comHist)
+    element console # set text (printCommands envsP (comHist ++ (reverse initComms)) selectedName)
     return ()
+                    

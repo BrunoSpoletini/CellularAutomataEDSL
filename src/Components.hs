@@ -165,7 +165,6 @@ timeController timer console cellButtons cellSelectors envs = do
         element pause # set style [("display", "none")]
         -- seteamos la lista de botones a inactivos y activamos el primero
         resetCellSelector cellSelectors (head cellSelectors) cellButtons envs
-        element console # set children []
 
     element playContainer #+ [element play, element pause]
     return (playContainer, reset)
@@ -173,13 +172,13 @@ timeController timer console cellButtons cellSelectors envs = do
 -- // Selector de entornos //
 
 -- Dibuja el selector de entornos
-envSelector ::  [(String, Env)] -> [[Comm]] -> [Element] -> [Element] -> Env -> UI (Element, [Element])
-envSelector envs comms cellSelectors cellButtons fileEnv = do
+envSelector ::  [(String, Env)] -> [Element] -> [Element] -> Env -> UI (Element, [Element])
+envSelector envs cellSelectors cellButtons fileEnv = do
     envSel <- UI.div #. "enviromentSelector"
     envOpts <- envSelectorOptions envs -- No mostramos el entorno inicial
     
     -- Ocultamos todos los selectores de celulas excepto el que usa nuestro enviroment
-    forM_ (zip3 envOpts cellSelectors comms) $ \(opt, cellSelector) -> do
+    forM_ (zip envOpts cellSelectors) $ \(opt, cellSelector) -> do
         on UI.click opt $ const $ do
             resetCellSelector cellSelectors cellSelector cellButtons envs
 
@@ -219,20 +218,6 @@ resetCellSelector cellSelectors selectedSelector cellButtons envs = do
     return ()
 
 -- // Funciones auxiliares
-
--- Pretty printer para la consola de comandos
-commToString :: [Comm] -> String
-commToString [] = ""
-commToString ((Restart e):cs) = show e
-commToString (Step:cs) = resumeSteps cs 1
-commToString (Select (Var n):cs) = "Select " ++ (map toUpper n) ++ "\n" ++ (commToString cs)
-commToString (Select (Id n):cs) = commToString cs
-commToString (c:cs) = (show c) ++ "\n" ++ (commToString cs)
-
-resumeSteps :: [Comm] -> Int -> String
-resumeSteps (Step:cs) n = resumeSteps cs (n+1)
-resumeSteps (cs) 1 = "Step\n" ++ commToString cs
-resumeSteps (cs) n = "Step (x" ++ (show n) ++ ")\n" ++ (commToString cs)
 
 -- Inhabilita la GUI
 handleError :: Element -> UI ()

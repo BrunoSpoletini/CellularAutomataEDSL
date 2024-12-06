@@ -38,7 +38,7 @@ module Common where
                                 limits :: [Int],
                                 changes :: [Pos]
                                 }
-        deriving (Show)
+        deriving (Show, Eq)
 
     type Pos = (Int, Int)
 
@@ -51,7 +51,7 @@ module Common where
                 | Restart Env -- UI shortcut
         deriving (Show)
 
-    data Error = DefaultFileNotFound | UndefCell | OutOfBounds | NameInUse | ParsingError String
+    data Error = DefaultFileNotFound | NoCellsDefined | UndefCell | OutOfBounds | NameInUse | ParsingError String
         deriving (Eq, Show)
 
     type Env = (GridData, ([CellData], CellData))

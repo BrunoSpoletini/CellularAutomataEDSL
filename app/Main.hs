@@ -45,46 +45,47 @@ main :: IO ()
 main = do   res <- compileFiles
             case res of
                 Left err -> errorHandler err
-                Right envs -> startCA envs
+                Right (envsP, commsL) -> startCA envsP commsL
 
 -- Inicia la GUI
-startCA :: [(String, Env)] -> IO ()
-startCA envs = do
-    startGUI defaultConfig { jsPort = Just 8024, jsStatic = Just "static"} (setup envs) --, jsLog = "Test" 
+startCA :: [(String, Env)] -> [[Comm]] -> IO ()
+startCA envs commsL = do
+    startGUI defaultConfig { jsPort = Just 8024, jsStatic = Just "static"} (setup envs commsL) --, jsLog = "Test" 
 
-setup :: [(String, Env)] -> Window -> UI ()
-setup envs window = setupFront window envs 
+setup :: [(String, Env)] -> [[Comm]] -> Window -> UI ()
+setup envs commsL window = setupFront window envs commsL
 
 -- Parsea un archivo, corre la monada y devuelve el entorno o un error
-compileFile :: String -> IO (Either Error Env)
+compileFile :: String -> IO (Either Error (Env, [Comm]))
 compileFile file = do
   putStrLn ("Abriendo " ++ file ++ "...")
   x <- readFile file
   case stmts_parse x of
     Failed e -> return $ Left (ParsingError e)
-    Ok stmts -> case runStateError (loadMonad stmts) initEnv of
+    Ok stmts -> let stmtsS = stmts  in
+                case runStateError (loadMonad stmtsS) initEnv of
                     Left err -> return $ Left err
-                    Right (v :!: s) -> return $ Right s
+                    Right (v :!: s) -> return $ Right (s, stmtsS)
 
 -- Carga los archivos de la carpeta ejemplos o devuelve un error
-compileFiles :: IO (Either Error [(String, Env)])
+compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))
 compileFiles = do
     files <- drop 2 <$> getDirectoryContents "static/examples"
     if filter ("default.txt" == ) files == [] then
         return $ Left DefaultFileNotFound
     else do
         comp files where
-        comp :: [String] -> IO (Either Error [(String, Env)])
-        comp [] = return (Right [])
+        comp :: [String] -> IO (Either Error ([(String, Env)], [[Comm]]))
+        comp [] = return (Right ([], []))
         comp (f:fs) = do
             res <- compileFile ("static/examples/" ++ f)
             case res of
                 Left err -> return (Left err)
-                Right env -> do
+                Right (env, comms) -> do
                     res' <- comp fs
                     case res' of
                         Left err -> return (Left err)
-                        Right envs -> return (Right ((f, env) : envs))
+                        Right (envsP, commsL) -> return (Right ((f, env):envsP , comms:commsL))
 
 errorHandler :: Error -> IO ()
 errorHandler err = do 

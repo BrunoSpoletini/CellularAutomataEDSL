@@ -43,16 +43,20 @@
     margin-bottom: 0px;
 }
 
-.console{
+.ui.segment.console{
     width: 15rem;
-    height: 200px;
+    min-height: 30px;
+    max-height: 200px;
     overflow-y: scroll;
     padding: 5px;
-    margin: 5px;
     font-family: monospace;
     text-align: left;
     white-space: pre-wrap;
     line-height: 1.5;
+    font-size: 12px;
+    display: flex;
+    align-content: center;
+    flex-direction: column-reverse;
 }
 
 .header {
