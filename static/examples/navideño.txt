@@ -1,0 +1,26 @@
+DEFCELL Red = (red, [1,2,3], [1,2,3,4,6])
+DEFCELL Green = (green, [1,2,3,4], [1,2,3,4,6])
+UPDATE (11,12) Red
+UPDATE (11,13) Red
+UPDATE (12,13) Red
+UPDATE (13,13) Red
+UPDATE (13,12) Red
+UPDATE (13,11) Red
+UPDATE (12,11) Red
+UPDATE (11,11) Red
+STEP
+STEP
+STEP
+STEP
+STEP
+STEP
+STEP
+STEP
+UPDATE (11,11) Green
+UPDATE (11,12) Green
+UPDATE (11,13) Green
+UPDATE (12,13) Green
+UPDATE (13,13) Green
+UPDATE (13,12) Green
+UPDATE (13,11) Green
+UPDATE (12,11) Green

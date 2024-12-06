@@ -94,6 +94,9 @@ setupFront window envs = void $ do
         commandsEvents = getCommandsEvents interactions
         
     calcBehaviour <- accumB (Right fileEnv) transitionEvents
+
+    --currentValue <- stepper (Right fileEnv) calcBehaviour
+
     comHistBehaviour <- accumB [] commandsEvents 
 
     -- Actualizamos la GUI

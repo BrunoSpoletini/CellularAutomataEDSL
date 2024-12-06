@@ -128,7 +128,6 @@ loadMonad :: (MonadState m, MonadError m) => [Comm] -> m ()
 loadMonad [] = return ()
 loadMonad cs = foldr1 (>>) (map processComm (cs++[Select (Id 1)]))
 
-
 searchCellId :: Env -> CellId -> Maybe CellData
 searchCellId (gData, ([], _)) idCell = Nothing
 searchCellId (gData, (c:cl, sel)) idCell =  if cId c == idCell then Just c 

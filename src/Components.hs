@@ -173,13 +173,13 @@ timeController timer console cellButtons cellSelectors envs = do
 -- // Selector de entornos //
 
 -- Dibuja el selector de entornos
-envSelector ::  [(String, Env)] -> [Element] -> [Element] -> Env -> UI (Element, [Element])
-envSelector envs cellSelectors cellButtons fileEnv = do
+envSelector ::  [(String, Env)] -> [[Comm]] -> [Element] -> [Element] -> Env -> UI (Element, [Element])
+envSelector envs comms cellSelectors cellButtons fileEnv = do
     envSel <- UI.div #. "enviromentSelector"
-    envOpts <- envSelectorOptions envs
+    envOpts <- envSelectorOptions envs -- No mostramos el entorno inicial
     
     -- Ocultamos todos los selectores de celulas excepto el que usa nuestro enviroment
-    forM_ (zip envOpts cellSelectors) $ \(opt, cellSelector) -> do
+    forM_ (zip3 envOpts cellSelectors comms) $ \(opt, cellSelector) -> do
         on UI.click opt $ const $ do
             resetCellSelector cellSelectors cellSelector cellButtons envs
 
@@ -191,12 +191,13 @@ envSelectorOptions :: [(String, Env)] -> UI [Element]
 envSelectorOptions [] = return empty
 envSelectorOptions envsP@((name, env):es) = do
     (canvasContainer, canvas) <- drawCanvas (floor cellSize) (floor canvasSize) env
-
+    let nameUpper = map toUpper $ take ((length name) - 4) name
+        isDefault = if nameUpper == "DEFAULT" then "none" else "flex"
     option <- UI.div #. "enviroment"
-                     #+ [   UI.div #. "enviromentName" # set text (map toUpper $ take ((length name) - 4) name),
+                     #+ [   UI.div #. "enviromentName" # set text nameUpper,
                             element canvasContainer
                         ]
-
+                     # set style [("display", isDefault)]
     envOpts <- envSelectorOptions es
     return $ option:envOpts
 
@@ -222,7 +223,7 @@ resetCellSelector cellSelectors selectedSelector cellButtons envs = do
 -- Pretty printer para la consola de comandos
 commToString :: [Comm] -> String
 commToString [] = ""
-commToString ((Restart e):cs) = ""
+commToString ((Restart e):cs) = show e
 commToString (Step:cs) = resumeSteps cs 1
 commToString (Select (Var n):cs) = "Select " ++ (map toUpper n) ++ "\n" ++ (commToString cs)
 commToString (Select (Id n):cs) = commToString cs
