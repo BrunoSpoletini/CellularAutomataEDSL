@@ -9,8 +9,11 @@ import Config
 
 -- // Pretty printer para la consola de comandos
 
-printCommands :: [(Env, [Comm])] -> [Comm] -> String -> String
-printCommands envsP cs selName = commToString selName envsP (reverse (clearHistory cs))
+printCommands :: [(Env, [Comm])] -> [Comm] -> String
+printCommands envsP cs = 
+    let initComms = snd.head $ envsP
+        selectedName = getFirstCellName initComms
+    in commToString selectedName envsP (reverse  (clearHistory $ cs ++ (reverse initComms)))
 
 clearHistory :: [Comm] -> [Comm]
 clearHistory [] = []

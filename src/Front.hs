@@ -52,8 +52,9 @@ setupFront window envs commsL = void $ do
     cellSel <- UI.div #+ (  map element $ cellSelectors )
 
     -- Console
-    console <- UI.div #. "ui segment console"
-        # set (attr "contenteditable") "false"
+    console <- UI.div #. "consoleContainer"
+        #+ [getConsoleDisplay, getExportButton ""]
+
 
     -- Timer
     timer <- UI.timer
@@ -110,9 +111,11 @@ updateGUI = mkWriteAttr $ \either (canvas, cellButtons, envs, body) -> do
 
 updateConsole :: WriteAttr ([(Env, [Comm])], Element) [Comm] 
 updateConsole = mkWriteAttr $ \comHist (envsP, console) -> do
-    let initComms = snd.head $ envsP
-        selectedName = getFirstCellName initComms
+    let hist = printCommands envsP comHist
+    --exporButt <- getExportButton hist
     element console # set children []
-    element console # set text (printCommands envsP (comHist ++ (reverse initComms)) selectedName)
+    --element console # set text hist
+    element console #+ [ getConsoleDisplay # set text hist,
+                         getExportButton hist]
     return ()
                     

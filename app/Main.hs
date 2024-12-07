@@ -95,6 +95,7 @@ errorHandler err = do
         UndefCell -> putStrLn "Celula no definida"
         OutOfBounds -> putStrLn "Fuera de los límites de la grilla"
         NameInUse -> putStrLn "El nombre ya está en uso"
+        NoCellsDefined -> putStrLn "No hay celulas definidas"
         ParsingError e -> putStrLn e
 
 

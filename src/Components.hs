@@ -217,6 +217,25 @@ resetCellSelector cellSelectors selectedSelector cellButtons envs = do
          element (cellButtons!!((foldr (+) 0 (take i cellOptionsLengths)))) # set (attr "class") "item active"
     return ()
 
+
+getConsoleDisplay :: UI Element
+getConsoleDisplay = do
+    consoleDisp <- UI.div   #. "ui segment console"
+                            # set (attr "contenteditable") "false"
+    return consoleDisp
+
+-- // Dibujo del boton de exportar
+getExportButton :: String -> UI Element
+getExportButton hist = do
+    button <- UI.div    #. "ui button export"
+                        # set UI.text "Export to out.txt"
+    on UI.click button $ const $ do
+        liftIO $ putStrLn hist
+        liftIO $ writeFile outFile hist
+        element button # set UI.text "Exported!"
+                       # set style [("background-color", "#5cb85c")]
+    return button
+
 -- // Funciones auxiliares
 
 -- Inhabilita la GUI

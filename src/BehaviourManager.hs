@@ -63,19 +63,3 @@ getIndex canvas x y size =
     let newX =  floor (abs (x)/cellSize)
         newY =  floor (abs (y)/cellSize)
     in (newX, newY)
-
--- -- Obtiene la celula seleccionada
--- getSelectedCell :: Behavior (Either Error Env) -> UI String
--- getSelectedCell calcBehaviour = do
---     currentState <- currentValue calcBehaviour
---     case currentState of
---         Left err -> return "Error"
---         Right env -> return $ name $ snd $ snd env
-
--- getCurrentComms :: Behavior (Either Error Env) -> UI [Comm]
--- getCurrentComms calcBehaviour = do
---     currentState <- currentValue calcBehaviour
---     case currentState of
---         Left err -> return []
---         Right env -> return $ snd $ snd env
-
