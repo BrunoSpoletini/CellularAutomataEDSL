@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use lambda-case" #-}
-{-# LANGUAGE RecursiveDo #-}
 
 module Front
     where
@@ -55,7 +54,6 @@ setupFront window envs commsL = void $ do
     console <- UI.div #. "consoleContainer"
         #+ [getConsoleDisplay, getExportButton ""]
 
-
     -- Timer
     timer <- UI.timer
             # set UI.interval 1000
@@ -99,7 +97,6 @@ setupFront window envs commsL = void $ do
     comHistBehaviour <- accumB [] commandsEvents 
 
     -- Actualizamos la GUI
-    --selName <- getSelectedCell calcBehaviour
     sink updateConsole comHistBehaviour $ pure ( zip (map snd envs) commsL, console)
     sink updateGUI calcBehaviour $ pure (canvas, cellButtons, envs, body)
 
@@ -112,9 +109,7 @@ updateGUI = mkWriteAttr $ \either (canvas, cellButtons, envs, body) -> do
 updateConsole :: WriteAttr ([(Env, [Comm])], Element) [Comm] 
 updateConsole = mkWriteAttr $ \comHist (envsP, console) -> do
     let hist = printCommands envsP comHist
-    --exporButt <- getExportButton hist
     element console # set children []
-    --element console # set text hist
     element console #+ [ getConsoleDisplay # set text hist,
                          getExportButton hist]
     return ()

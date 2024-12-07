@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wnoncanonical-monad-instances #-}
+
 module Automata where
 import Debug.Trace -- TO DO remove
 import Common
@@ -5,12 +7,14 @@ import Monads
 import Prelude
 import Control.Monad
 import Data.Char
+import Text.Read (readMaybe)
 import Parse
 -- import qualified Data.Map.Strict as M
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
 
 import Config
+
 
 -- Enviroments
 -- type Env = (GridData, ([CellData], CellData))
@@ -20,7 +24,7 @@ initEnv :: Env
 initEnv   = let size =  floor(canvasSize/cellSize)
                 deadCell = CellData { cId = 0, 
                                     name = "dead", 
-                                    colour = "rgb(240 241 236)", 
+                                    colour = AliceBlue, 
                                     bornL = [], 
                                     surviveL  = [1,2,3,4,5,6,7,8] }
                 gridD = GridData { height = size, -- to be changed
@@ -43,7 +47,7 @@ instance Applicative StateError where
   (<*>) = ap
 
 instance Monad StateError where
-  --return x = StateError (\s -> Right (x :!: s))
+  return x = StateError (\s -> Right (x :!: s))
   m >>= f = StateError (\s ->   let e = runStateError m s 
                                 in case e of
                                     (Left err) -> Left err
@@ -71,8 +75,10 @@ instance MonadState StateError where
                                          
     addCell var col xs ys = StateError(\s -> 
         case runStateError (lookforCell (Var var)) s of
-            Left UndefCell -> Right (() :!: (fst s, (((fst (snd s) ++ [cell]), snd(snd s))))) 
-                                where cell = createCell (fst (snd s)) var col xs ys
+            Left UndefCell -> let   cell = createCell (fst (snd s)) var col xs ys
+                              in    case cell of 
+                                        Nothing -> Left InvalidColour
+                                        Just c -> Right (() :!: (fst s, (((fst (snd s) ++ [c]), snd(snd s))))) 
             Right x -> Left NameInUse
         )
 
@@ -114,6 +120,9 @@ processComm (UpdatePos pos) = do    cellId <- checkGrid pos
                                             storeChanges [pos]
 processComm Step = resolveStep
 
+processComm (Steps 0) = return () 
+processComm (Steps n) = do  resolveStep
+                            processComm (Steps (n-1))
 
 processComm (Restart env) = do  let cuadr = grid (fst env)
                                 setEnv env
@@ -158,12 +167,16 @@ changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 the
                                     newMiddleRow = V.singleton (left V.++ m V.++ right)
                                 in Just g {grid = upper V.++ newMiddleRow V.++ lower}
 
-createCell :: [CellData] -> Variable -> Variable -> [Int] -> [Int] -> CellData
-createCell cs n col xs ys = CellData {  cId = cId (last cs) + 1, 
-                                        name = (map toLower n), 
-                                        colour = col, 
-                                        bornL = xs, 
-                                        surviveL  = ys }
+createCell :: [CellData] -> Variable -> Variable -> [Int] -> [Int] -> Maybe CellData
+createCell cs n col xs ys = let colorStr = (\(x:xs) -> (toUpper x) : (map toLower xs)) col
+                                color = readMaybe colorStr :: Maybe Color
+                            in case color of
+                                Nothing -> Nothing
+                                Just color -> Just $ CellData { cId = cId (last cs) + 1, 
+                                                                name = (map toLower n), 
+                                                                colour = color, 
+                                                                bornL = xs, 
+                                                                surviveL  = ys }
 
 printGrid :: Env -> String
 printGrid (gData, cList) = let g = grid gData

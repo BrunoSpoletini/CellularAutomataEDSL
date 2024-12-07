@@ -28,10 +28,11 @@ commToString selName envsP ((Restart e):cs) = do
         selectedName = getFirstCellName comms
     commToString selectedName envsP comms ++ commToString selectedName envsP cs
 commToString selName envsP (Step:cs) = resumeSteps selName envsP cs 1
+commToString selName envsP (Steps n:cs) = resumeSteps selName envsP cs n
 commToString selName envsP (Select (Var n):cs) = commToString n envsP cs
 commToString selName envsP (Select (Id n):cs) = commToString selName envsP cs
 commToString selName envsP ((DefCell name color bornL surviveL):cs) = 
-    "DEFCELL " ++ name ++ " = (" ++ (map toLower color) ++ ", " ++ (show bornL) ++ ", " ++ (show surviveL) ++ ")" ++ "\n" ++ (commToString selName envsP cs)
+    "DEFCELL " ++ (map toUpper name) ++ " = (" ++ (map toUpper color) ++ ", " ++ (show bornL) ++ ", " ++ (show surviveL) ++ ")" ++ "\n" ++ (commToString selName envsP cs)
 commToString selName envsP ((UpdatePos pos):cs) = 
     "UPDATE " ++ (show pos) ++ " " ++ (map toUpper selName) ++ "\n" ++ (commToString selName envsP cs)
 
@@ -43,8 +44,8 @@ commToString selName envsP (c:cs) =  (show c) ++ "\n" ++ (commToString selName e
 
 resumeSteps :: String -> [(Env, [Comm])] -> [Comm] -> Int -> String
 resumeSteps selName envsP (Step:cs) n = resumeSteps selName envsP cs (n+1)
-resumeSteps selName envsP (cs) 1 =  "Step" ++ "\n" ++ commToString selName envsP cs
-resumeSteps selName envsP (cs) n = "Step (x" ++ (show n) ++ ")" ++ "\n" ++ (commToString selName envsP cs) 
+resumeSteps selName envsP (cs) 1 =  "STEP" ++ "\n" ++ commToString selName envsP cs
+resumeSteps selName envsP (cs) n = "STEPS " ++ (show n) ++ "\n" ++ (commToString selName envsP cs) 
 
 getFirstCellName :: [Comm] -> String
 getFirstCellName [] = ""

@@ -49,9 +49,9 @@ drawCellButtons (c:cs) = do
                     # set UI.text (map toUpper nombre)
                     # set style [("font-size", "20px")]
     cellLabelActive <- UI.div   #. "ui left pointing label"
-                                # set style [("background-color", color)]
+                                # set style [("background-color", show color)]
     cellLabelInactive <- UI.div #. "ui label"
-                                # set style [("background-color", color)]
+                                # set style [("background-color", show color)]
     element cellDiv #+ [element cellLabelActive, element cellLabelInactive]
     cellDivs <- drawCellButtons cs
     return $ cellDiv : cellDivs
@@ -123,11 +123,11 @@ drawSquares canvas env = do
                     drawSquare canvas (fromIntegral x * cellSize) (fromIntegral y * cellSize) cellSize color
 
 -- Dibuja un cuadrado en la grid
-drawSquare :: Canvas -> Double -> Double -> Double -> String -> UI()
+drawSquare :: Canvas -> Double -> Double -> Double -> Common.Color -> UI()
 drawSquare canvas x y size colour =
     let newX =  fromIntegral (floor (x/cellSize)) * cellSize + 1
         newY =  fromIntegral (floor (y/cellSize)) * cellSize + 1
-    in  do  canvas # set' UI.fillStyle (UI.htmlColor colour)
+    in  do  canvas # set' UI.fillStyle (UI.htmlColor $ show colour)
             canvas # UI.fillRect (newX,newY) (size-2) (size-2)
 
 
@@ -230,7 +230,6 @@ getExportButton hist = do
     button <- UI.div    #. "ui button export"
                         # set UI.text "Export to out.txt"
     on UI.click button $ const $ do
-        liftIO $ putStrLn hist
         liftIO $ writeFile outFile hist
         element button # set UI.text "Exported!"
                        # set style [("background-color", "#5cb85c")]

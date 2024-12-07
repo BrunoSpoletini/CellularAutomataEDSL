@@ -53,7 +53,9 @@ default-extensions:
 # - FlexibleInstances
 # - TupleSections
 
-#ghc-options:
+ghc-options:
+- -Wnoncanonical-monad-instances
+#- -Wall
 # - -Wall
 # - -Wcompat
 # - -Widentities

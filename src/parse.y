@@ -23,11 +23,10 @@ import Data.Tuple
     '['     { TBrackO }
     ']'     { TBrackC }
     NVAR    { NVar $$ }
-    --CVAR    { TColour $$}
-    DEFCELL     { TDefCell }
+    DEFCELL { TDefCell }
     INT     { TInt $$ }
     STEP    { TStep }
-    CHECK   { TCheck }
+    STEPS   { TSteps }
     UPDATE  { TUpdate }
 
 %%
@@ -36,9 +35,9 @@ Comms       : Comm Comms            { $1 : $2 }
             |                       { [] }
 
 Comm        : DefCell               { $1 }
-            | CHECK Position        { CheckC $2 } 
             | UPDATE Position NVAR  { UpdateCell $2 $3 }
             | STEP                  { Step }
+            | STEPS INT             { Steps $2 }
 
 DefCell     : DEFCELL NVAR '=' '(' NVAR ',' '[' NList ']' ',' '[' NList ']' ')' { DefCell $2 $5 $8 $12  }
 
@@ -47,9 +46,6 @@ NList       : INT NList             { $1 : $2 }
             |                       {[]}
 
 Position    : '(' INT ',' INT ')'   { ($2, $4) }
-
-lineno      :: { LineNumber }
-             : {% getLineNo }
 
 {
 data ParseResult a = Ok a | Failed String
@@ -89,7 +85,7 @@ data Token =
     | TDefCell
     | TInt Int
     | TStep
-    | TCheck
+    | TSteps
     | TUpdate
     | TEOF
     | TBrackO
@@ -117,8 +113,8 @@ lexer cont s = case s of
                         lexVar cs =
                             case span isAlpha cs of
                                 ("DEFCELL", rest) -> cont TDefCell rest
+                                ("STEPS", rest) -> cont TSteps rest
                                 ("STEP", rest) -> cont TStep rest
-                                ("CHECK", rest) -> cont TCheck rest
                                 ("UPDATE", rest) -> cont TUpdate rest
                                 (var, rest)   -> cont (NVar var) rest
 
@@ -126,19 +122,3 @@ stmts_parse s = parseStmts s 1
 stmt_parse s = parseStmt s 1
 
 }
-
-    -- Gramatica
-    -- comm := 'DEFCELL' var '=' '(' var ',' '[' numList ']' ',' '[' numList ']' ')' 
-    --       | 'UPDATE' pos var
-    --       | 'CHECK' pos
-    --       | 'STEP' 
-
-    -- var := letter | letter var
-
-    -- num := digit | digit num
-
-    -- numList :=  num | num numList
-
-    -- letter := 'a'|'b'|...|'z'
-    
-    -- digit := '0'|'1'|...|'9'

@@ -16,6 +16,10 @@ module Common where
 
     --data Cell = (CellId, CellData)
 
+    data Color = Black | Silver | Gray | Grey | White | Maroon | Red | Purple | Fuchsia 
+        | Green | Lime | Olive | Yellow | Navy | Blue | Teal | Aqua | Brown | AliceBlue
+        deriving (Show, Read, Eq)
+
     type CellId = Int
 
     type Variable = String
@@ -27,7 +31,7 @@ module Common where
 
     data CellData = CellData {  cId :: CellId,
                                 name :: Variable,
-                                colour :: Variable,
+                                colour :: Color,
                                 bornL :: [Int],
                                 surviveL :: [Int] }
         deriving (Show, Eq)
@@ -42,29 +46,24 @@ module Common where
 
     type Pos = (Int, Int)
 
-    data Comm = UpdateCell Pos Variable 
-                | UpdatePos Pos
-                | Step 
-                | CheckC Pos --pending
+    -- Comandos interactivos
+    data Comm =   UpdateCell Pos Variable
                 | DefCell Variable Variable [Int] [Int]
+                | Step 
+                | Steps Int
+                -- UI Commands
+                | Restart Env
                 | Select Ident
-                | Restart Env -- UI shortcut
+                | UpdatePos Pos
         deriving (Show)
 
-    data Error = DefaultFileNotFound | NoCellsDefined | UndefCell | OutOfBounds | NameInUse | ParsingError String
+    data Error = DefaultFileNotFound | InvalidColour | NoCellsDefined | UndefCell | OutOfBounds | NameInUse | ParsingError String
         deriving (Eq, Show)
 
     type Env = (GridData, ([CellData], CellData))
 
-    -- type Env = { -- to do cambiar
-    --     gData :: GridData,
-    --     cList :: [CellData],
-    --     sel :: CellData
-    -- }
-
-
-      -- Tipos de los nombres
-    data Name =  Global  String
+    -- Tipos de los nombres
+    data Name =  Global String
         deriving (Show, Eq)
 
 
