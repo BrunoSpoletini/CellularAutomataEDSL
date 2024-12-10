@@ -1,30 +1,14 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use lambda-case" #-}
 
 module Front
     where
 
--- import Data.Char (toUpper, toLower)
-import Data.IORef
 import Control.Monad -- (forM_, mapM_)
-import Data.Strict.Tuple hiding (fst, snd, zip)
-
---import           System.Console.Haskeline -- DEBUG
-
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Canvas as Canvas
 import           Graphics.UI.Threepenny.Core hiding (grid)
---import Distribution.Compat.Prelude
-import qualified Data.Vector as V
-
-import Debug.Trace -- TO DO remove
-
-import System.Directory 
 
 import Common
-import Automata
-import Monads
-
 import Components
 import BehaviourManager
 import Config
@@ -56,7 +40,7 @@ setupFront window envs commsL = void $ do
 
     -- Timer
     timer <- UI.timer
-            # set UI.interval 1000
+            # set UI.interval speed
             # set UI.running False
 
     -- Botones de control
@@ -113,4 +97,3 @@ updateConsole = mkWriteAttr $ \comHist (envsP, console) -> do
     element console #+ [ getConsoleDisplay # set text hist,
                          getExportButton hist]
     return ()
-                    

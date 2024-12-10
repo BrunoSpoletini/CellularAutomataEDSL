@@ -3,10 +3,18 @@ module Config
 
 -- // Constantes de configuracion de la UI //
 -- El tamaño de las celulas puede ir de los 5px (100x100 celulas) a los 500px (1x1 celulas)
-cellSize = 20 :: Double -- [5 - 500] px
+-- Debe ser divisible por el canvasSize
+cellSize :: Double
+cellSize = 20 -- [5 - 500] px
 
 -- En caso de mejorarse la responsiveness de la pagina el tamaño del canvas puede aumentarse
-canvasSize = 500 :: Double
+canvasSize :: Double
+canvasSize = 500
+
+-- Velocidad a la que se producen los steps
+speed :: Int
+speed = 250 -- [100 - 1000] ms
 
 -- Path del archivo de salida
-outFile = "static/examples/out.txt" :: String
+outFile :: String
+outFile = "static/examples/out.txt"

@@ -1,11 +1,7 @@
 module PrettyPrint where
 
-import Data.Char (toUpper, toLower)
-
+import Data.Char
 import Common
-import Automata
-import Monads
-import Config
 
 -- // Pretty printer para la consola de comandos
 
@@ -38,9 +34,6 @@ commToString selName envsP ((UpdatePos pos):cs) =
 
 commToString selName envsP ((UpdateCell pos name):cs) = 
     "UPDATE " ++ (show pos) ++ " " ++ (map toUpper name) ++ "\n" ++ (commToString selName envsP cs)
-
-commToString selName envsP (c:cs) =  (show c) ++ "\n" ++ (commToString selName envsP cs)
-
 
 resumeSteps :: String -> [(Env, [Comm])] -> [Comm] -> Int -> String
 resumeSteps selName envsP (Step:cs) n = resumeSteps selName envsP cs (n+1)

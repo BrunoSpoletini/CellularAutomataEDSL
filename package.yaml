@@ -1,10 +1,10 @@
 name:                CA-DSL
 version:             0.1.0.0
-github:              "githubuser/CA-DSL"
+github:              "brunospoletini/CA-DSL"
 license:             BSD-3-Clause
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2024 Author name here"
+author:              "Bruno Spoletini"
+maintainer:          "bruno_spoletini@hotmail.com"
+copyright:           "2024 Bruno Spoletini"
 
 extra-source-files:
 - README.md
@@ -35,32 +35,27 @@ dependencies:
 - transformers
 - aeson
 - directory
-#- text quiza sirve <-
-# - parsec
-# - containers
-# - QuickCheck
-# - strict
-# - directory
 
 default-extensions:
 - MultiWayIf
 - FlexibleContexts
 - TypeSynonymInstances
 - FlexibleInstances
-# - GADTs
-# - StandaloneDeriving
-# - PatternSynonyms
-# - FlexibleInstances
-# - TupleSections
 
 ghc-options:
+- -Wall
+- -Wno-unrecognised-pragmas
 - -Wnoncanonical-monad-instances
-#- -Wall
-# - -Wall
+- -fno-warn-unused-do-bind
+- -fno-warn-unused-matches
+- -fno-warn-name-shadowing
+- -fno-warn-incomplete-uni-patterns
+- -fno-warn-incomplete-patterns
+- -fno-warn-type-defaults
+# - -Wunused-matches
 # - -Wcompat
 # - -Widentities
 # - -Wincomplete-record-updates
-# - -Wincomplete-uni-patterns
 # - -Wmissing-export-lists
 # - -Wmissing-home-modules
 # - -Wpartial-fields
@@ -79,14 +74,3 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - CA-DSL
-
-# tests:
-#   CA-DSL-test:
-#     main:                Spec.hs
-#     source-dirs:         test
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - CA-DSL

@@ -1,20 +1,5 @@
 module Common where
-    import Data.Colour 
-    --import Data.Map.Strict as M
     import qualified Data.Vector as V
-    
-
-    -- -- Comandos interactivos o de archivos
-    -- data Stmt e =   Def e |
-    --                 Ask e
-    --      deriving (Show)
-
-
-    -- instance Functor Stmt where
-    --     fmap f (Def i) = Def (f i)
-    --     fmap f (Ask i) = Ask (f i)
-
-    --data Cell = (CellId, CellData)
 
     data Color = Black | Silver | Gray | Grey | White | Maroon | Red | Purple | Fuchsia 
         | Green | Lime | Olive | Yellow | Navy | Blue | Teal | Aqua | Brown | AliceBlue
@@ -36,10 +21,7 @@ module Common where
                                 surviveL :: [Int] }
         deriving (Show, Eq)
  
-    data GridData = GridData {  height :: Int, -- se pueden sacar de la grid
-                                width :: Int, -- usando height = V.length cuadr y width = V.length (cuadr V.! 0)
-                                grid :: Grid,
-                                limits :: [Int],
+    data GridData = GridData {  grid :: Grid,
                                 changes :: [Pos]
                                 }
         deriving (Show, Eq)
@@ -47,8 +29,8 @@ module Common where
     type Pos = (Int, Int)
 
     -- Comandos interactivos
-    data Comm =   UpdateCell Pos Variable
-                | DefCell Variable Variable [Int] [Int]
+    data Comm =   DefCell Variable Variable [Int] [Int]
+                | UpdateCell Pos Variable
                 | Step 
                 | Steps Int
                 -- UI Commands
@@ -60,6 +42,7 @@ module Common where
     data Error = DefaultFileNotFound | InvalidColour | NoCellsDefined | UndefCell | OutOfBounds | NameInUse | ParsingError String
         deriving (Eq, Show)
 
+    -- Estado del automata, que consiste en la grilla, un array de celulas definidas, y la celula seleccionada
     type Env = (GridData, ([CellData], CellData))
 
     -- Tipos de los nombres

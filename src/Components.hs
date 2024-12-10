@@ -7,13 +7,11 @@ import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core hiding (grid)
 import           Graphics.UI.Threepenny.Canvas as Canvas
 import qualified Data.Vector as V
-import Data.Char (toUpper, toLower)
+import Data.Char
 
 import Common
 import Automata
-import Monads
 import Config
-
 
 -- // Selectores de celulas //
 
@@ -175,7 +173,7 @@ timeController timer console cellButtons cellSelectors envs = do
 envSelector ::  [(String, Env)] -> [Element] -> [Element] -> Env -> UI (Element, [Element])
 envSelector envs cellSelectors cellButtons fileEnv = do
     envSel <- UI.div #. "enviromentSelector"
-    envOpts <- envSelectorOptions envs -- No mostramos el entorno inicial
+    envOpts <- envSelectorOptions envs
     
     -- Ocultamos todos los selectores de celulas excepto el que usa nuestro enviroment
     forM_ (zip envOpts cellSelectors) $ \(opt, cellSelector) -> do

@@ -1,23 +1,15 @@
-{-# OPTIONS_GHC -Wnoncanonical-monad-instances #-}
-
 module Automata where
-import Debug.Trace -- TO DO remove
+    
 import Common
 import Monads
 import Prelude
 import Control.Monad
 import Data.Char
 import Text.Read (readMaybe)
-import Parse
--- import qualified Data.Map.Strict as M
 import Data.Strict.Tuple hiding (fst, snd)
 import qualified Data.Vector as V
 
 import Config
-
-
--- Enviroments
--- type Env = (GridData, ([CellData], CellData))
 
 -- Init enviroment
 initEnv :: Env
@@ -27,11 +19,8 @@ initEnv   = let size =  floor(canvasSize/cellSize)
                                     colour = AliceBlue, 
                                     bornL = [], 
                                     surviveL  = [1,2,3,4,5,6,7,8] }
-                gridD = GridData { height = size, -- to be changed
-                                width = size, -- to be changed
-                                grid = V.fromList (replicate size (V.fromList (replicate size 0))),
-                                limits = [0,0,0,0],
-                                changes = []
+                gridD = GridData { grid = V.fromList (replicate size (V.fromList (replicate size 0))),
+                                    changes = []
                                 }
             in (gridD, ([deadCell], deadCell))
 
@@ -47,7 +36,6 @@ instance Applicative StateError where
   (<*>) = ap
 
 instance Monad StateError where
-  return x = StateError (\s -> Right (x :!: s))
   m >>= f = StateError (\s ->   let e = runStateError m s 
                                 in case e of
                                     (Left err) -> Left err
@@ -96,16 +84,6 @@ checkCell pos env = case runStateError (checkGrid pos) env of
                       Left err -> "Error: " ++ show err
                       Right (cellId :!: env) -> show cellId
 
--- Considera el estado inicial como un error
-evalUp :: Comm -> Either Error Env -> Either Error Env
-evalUp c (Left err) = Left err
-evalUp c (Right env) = eval c env
-
-eval :: Comm -> Env -> Either Error Env
-eval c env =  case runStateError (processComm c) env of
-                  (Left err) -> Left err
-                  (Right (v :!: s)) -> Right s
-
 processComm :: (MonadState m, MonadError m) => Comm -> m ()
 processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
                                         updateGrid pos (cId cellData)                           
@@ -131,8 +109,6 @@ processComm (Select ident) = do     cellData <- lookforCell ident
                                     env <- getEnv
                                     setEnv (fst env, (fst $ snd env, cellData))
 
-processComm _ = return ()
-
 loadMonad :: (MonadState m, MonadError m) => [Comm] -> m ()
 loadMonad [] = return ()
 loadMonad cs = do   foldr1 (>>) (map processComm (cs))
@@ -154,11 +130,13 @@ searchCellName (gData, (c:cl, sel)) var =   if name c == (map toLower var) then 
                                             else searchCellName (gData, (cl, sel)) var
 
 changeCell :: CellId -> Pos -> GridData -> Maybe GridData
-changeCell id (x, y) g =    if x > width g || x < 0 || y > height g || y < 0 then
+changeCell id (x, y) g = let    gr = grid g
+                                height = V.length gr
+                                width = V.length (gr V.! 0)
+                         in if x > width || x < 0 || y > height || y < 0 then
                                 Nothing
                             else
-                                let gr = grid g
-                                    upper = V.take y gr
+                                let upper = V.take y gr
                                     lower = V.drop (y+1) gr
                                     middleRow = gr V.! y
                                     left = V.take x middleRow
@@ -177,10 +155,6 @@ createCell cs n col xs ys = let colorStr = (\(x:xs) -> (toUpper x) : (map toLowe
                                                                 colour = color, 
                                                                 bornL = xs, 
                                                                 surviveL  = ys }
-
-printGrid :: Env -> String
-printGrid (gData, cList) = let g = grid gData
-                in V.foldl (\acc x -> acc ++ (V.foldl (\acc y -> acc ++ (show y) ++ " ") "" x) ++ "-\n") "" g
 
 resolveStep :: (MonadState m, MonadError m) => m ()
 resolveStep = do
@@ -213,18 +187,22 @@ cellBirth cells cellData neighbours =
         else 0
 
 getNeighbours :: Pos -> GridData -> [CellId]
-getNeighbours (x, y) gData = 
+getNeighbours (x, y) gData =
     let cuadr = grid gData
         height = V.length cuadr
         width = V.length (cuadr V.! 0)
         neighbours = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
-        validNeighbours = filter (\(x, y) -> x >= 0 && x < width && y >= 0 && y < height) neighbours 
-        -- TO DO: cambiar para que los bordes sean ciclicos
-    in let idCant = map (\(x, y) -> (cuadr V.! x) V.! y) validNeighbours
-       in --trace ("test"++ "\n" ++ 
-            --show neighbours ++ "\n" ++ 
-            --show validNeighbours ++ "\n" ++ 
-            --show idCant ++ "\n" ++ 
-            --show cuadr) 
-            idCant -- TO DO borrar trace
+        roundNeighbours = map (\(x, y) -> (x `mod` width, y `mod` height)) neighbours
+    in map (\(x, y) -> (cuadr V.! x) V.! y) roundNeighbours
 
+-- // GUI Functions //
+
+-- Considera el estado inicial como un error para permitir construir el behaviour manager
+evalUp :: Comm -> Either Error Env -> Either Error Env
+evalUp c (Left err) = Left err
+evalUp c (Right env) = eval c env
+
+eval :: Comm -> Env -> Either Error Env
+eval c env =  case runStateError (processComm c) env of
+                  (Left err) -> Left err
+                  (Right (v :!: s)) -> Right s

@@ -169,8 +169,6 @@
     filter: brightness(80%);
 }
 
-
-
 .enviroment{
     display: flex;
     flex-direction: column;
@@ -201,10 +199,33 @@
     background: rgb(255 255 255);
 }
 
+@media (max-width: 768px) {
+    .displayRow{
+        display: flex;
+        flex-direction: column;
+    }
+
+    .leftContainer {
+        flex-direction: row;
+        height: 10%;
+    }
+
+    .enviromentSelector {
+        height: 100px;
+        align-items: flex-start;
+    }
+
+    .cellSelectConsole {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        justify-content: space-evenly;
+    }
+}
 
 /* CA Canvas */
 .canvas-container{
-    
     border: 1px solid black;
     background: #f0f1ec;
     position: relative;

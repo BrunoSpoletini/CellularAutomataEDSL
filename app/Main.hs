@@ -1,45 +1,17 @@
-
-
 module Main where
-
-import           Control.Exception              ( catch
-                                                , IOException
-                                                )
--- import           Control.Monad.Except
-import           Data.Char
+    
 import           Data.List
 import           Data.Maybe
 import           Prelude                 hiding ( print )
-import           System.Console.Haskeline
-import qualified Control.Monad.Catch           as MC
-import           System.Environment
-import           System.IO               hiding ( print )
--- import           Text.PrettyPrint.HughesPJ      ( render
---                                                 , text
---                                                 )
--- import Control.Monad.State hiding (State)
--- import Control.Monad.Except
 
 import Data.Strict.Tuple hiding (fst, snd)
-
-import Data.IORef
-
-import System.Exit
-
 import System.Directory (getDirectoryContents)
-
 import           Graphics.UI.Threepenny      as UI hiding (map, grid, drop)
-import           Graphics.UI.Threepenny.Canvas as Canvas
-import           Graphics.UI.Threepenny.Core hiding (grid)
 
 import           Front
 import           Common
 import           Parse
 import           Automata
-import           Monads
-
-import           Control.Parallel
-
 
 main :: IO ()
 main = do   res <- compileFiles
@@ -50,7 +22,7 @@ main = do   res <- compileFiles
 -- Inicia la GUI
 startCA :: [(String, Env)] -> [[Comm]] -> IO ()
 startCA envs commsL = do
-    startGUI defaultConfig { jsPort = Just 8024, jsStatic = Just "static"} (setup envs commsL) --, jsLog = "Test" 
+    startGUI defaultConfig { jsPort = Just 8023, jsStatic = Just "static"} (setup envs commsL)
 
 setup :: [(String, Env)] -> [[Comm]] -> Window -> UI ()
 setup envs commsL window = setupFront window envs commsL
@@ -65,7 +37,7 @@ compileFile file = do
     Ok stmts -> let stmtsS = stmts  in
                 case runStateError (loadMonad stmtsS) initEnv of
                     Left err -> return $ Left err
-                    Right (v :!: s) -> return $ Right (s, stmtsS)
+                    Right (_ :!: s) -> return $ Right (s, stmtsS)
 
 -- Carga los archivos de la carpeta ejemplos o devuelve un error
 compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))

@@ -4,13 +4,11 @@ import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core hiding (grid)
 import           Graphics.UI.Threepenny.Canvas as Canvas
 
-import Data.Char (toUpper, toLower)
-
 import Common
 import Automata
-import Monads
 import Config
 
+-- Funciones de generacion de eventos por interaccion con la UI
 clickReset :: Env -> Element -> Event Comm 
 clickReset env reset = const (Restart env) <$> UI.click reset
 
@@ -22,7 +20,6 @@ clickCanvas canvas =    (\pos -> UpdatePos pos) <$>
 cells :: [(String, Env)] -> [CellData]
 cells envs =  concat (map (\(fileName, (gridData, (cellsD, sel))) -> drop 1 cellsD) envs)
 
--- Generamos una lista de pares con los divs de los botones de celulas y los comandos (Select cId) asociados
 cellComm ::  [Element] -> [(String, Env)] -> [(Element, Comm)]
 cellComm cellButtons envs = zip cellButtons (map (\cell -> Select (Var $ name cell)) (cells envs))
 
@@ -41,6 +38,7 @@ clickCell cellButtons envs = (foldr1 (UI.unionWith const) . map makeClick) (cell
 timerTick :: UI.Timer -> Event Comm
 timerTick timer = const Step <$> UI.tick timer
 
+-- Unimos todos los eventos de iteraccion en uno solo
 getInteractions :: (Env, [(String, Env)], [Element], [Element], Element, Canvas, UI.Timer) -> Event Comm
 getInteractions (env, envs, cellButtons, envSelList, reset, canvas, timer ) = 
     foldr1 (UI.unionWith const) [
@@ -50,6 +48,7 @@ getInteractions (env, envs, cellButtons, envSelList, reset, canvas, timer ) =
         timerTick timer, 
         clickEnv envSelList envs ]
 
+-- Funciones de generacion de eventos de transicion y comandos
 getTransitionEvents :: Event Comm -> Event (Either Error Env -> Either Error Env)
 getTransitionEvents interactions = fmap evalUp interactions
 
@@ -57,7 +56,6 @@ getCommandsEvents :: Event Comm -> Event ([Comm] -> [Comm])
 getCommandsEvents interactions = fmap (:) interactions
 
 -- // Funciones auxiliares
-
 getIndex :: Canvas -> Double -> Double -> Double -> Pos
 getIndex canvas x y size =
     let newX =  floor (abs (x)/cellSize)
