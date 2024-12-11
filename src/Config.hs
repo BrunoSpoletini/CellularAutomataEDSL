@@ -17,4 +17,7 @@ speed = 250 -- [100 - 1000] ms
 
 -- Path del archivo de salida
 outFile :: String
-outFile = "static/examples/out.txt"
+outFile = "./definitions/out.txt"
+
+definitionsPath :: String
+definitionsPath = "./definitions/"

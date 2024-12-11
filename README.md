@@ -28,7 +28,7 @@ To run the CA-DSL simulator, use the following command:
 stack run
 ```
 
-You can define your own cellular automata rules in the `static/examples` directory and visualize them using the provided graphical interface.
+You can define your own cellular automata rules in the `./definitions` directory and visualize them using the provided graphical interface.
 
 ## Examples
 

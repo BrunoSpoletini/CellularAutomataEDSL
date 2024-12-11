@@ -12,6 +12,7 @@ import           Front
 import           Common
 import           Parse
 import           Automata
+import           Config   
 
 main :: IO ()
 main = do   res <- compileFiles
@@ -42,7 +43,7 @@ compileFile file = do
 -- Carga los archivos de la carpeta ejemplos o devuelve un error
 compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))
 compileFiles = do
-    files <- drop 2 <$> getDirectoryContents "static/examples"
+    files <- drop 2 <$> getDirectoryContents definitionsPath
     let def = filter ("default.txt" == ) files
     if def == [] then
         return $ Left DefaultFileNotFound
@@ -52,7 +53,7 @@ compileFiles = do
         comp :: [String] -> IO (Either Error ([(String, Env)], [[Comm]]))
         comp [] = return (Right ([], []))
         comp (f:fs) = do
-            res <- compileFile ("static/examples/" ++ f)
+            res <- compileFile (definitionsPath ++ f)
             case res of
                 Left err -> return (Left err)
                 Right (env, comms) -> do
