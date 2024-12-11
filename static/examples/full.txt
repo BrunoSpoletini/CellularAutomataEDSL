@@ -1,5 +1,0 @@
-DEFCELL highlife = (BLUE, [3,6], [2,3])
-DEFCELL square = (RED, [1,2,3], [1,2,3,4,6])
-
-UPDATE (12,11) square
-UPDATE (12,10) square

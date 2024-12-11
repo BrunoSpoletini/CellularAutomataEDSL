@@ -6,9 +6,9 @@ cabal-version: 2.2
 
 name:           CA-DSL
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/CA-DSL#readme>
-homepage:       https://github.com/brunospoletini/CA-DSL#readme
-bug-reports:    https://github.com/brunospoletini/CA-DSL/issues
+description:    Please see the README on GitHub at <https://github.com/BrunoSpoletini/CellularAutomataEDSL#readme>
+homepage:       https://github.com/BrunoSpoletini/CellularAutomataEDSL#readme
+bug-reports:    https://github.com/BrunoSpoletini/CellularAutomataEDSL/issues
 author:         Bruno Spoletini
 maintainer:     bruno_spoletini@hotmail.com
 copyright:      2024 Bruno Spoletini
@@ -17,11 +17,10 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
-  location: https://github.com/brunospoletini/CA-DSL
+  location: https://github.com/BrunoSpoletini/CellularAutomataEDSL
 
 library
   exposed-modules:

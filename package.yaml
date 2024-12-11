@@ -1,6 +1,6 @@
 name:                CA-DSL
 version:             0.1.0.0
-github:              "brunospoletini/CA-DSL"
+github:              "BrunoSpoletini/CellularAutomataEDSL"
 license:             BSD-3-Clause
 author:              "Bruno Spoletini"
 maintainer:          "bruno_spoletini@hotmail.com"
@@ -8,16 +8,15 @@ copyright:           "2024 Bruno Spoletini"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
 # Metadata used when publishing your package
-# synopsis:            Short description of your package
+# synopsis:            Cellular automata EDSL
 # category:            Web
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/CA-DSL#readme>
+description:         Please see the README on GitHub at <https://github.com/BrunoSpoletini/CellularAutomataEDSL#readme>
 
 dependencies:
 - base # >= 4.7 && < 5
@@ -25,7 +24,7 @@ dependencies:
 - colour
 - containers
 - vector
-- strict # to use strict tuples (:!:)
+- strict
 - array
 - pretty
 - haskeline
@@ -52,14 +51,6 @@ ghc-options:
 - -fno-warn-incomplete-uni-patterns
 - -fno-warn-incomplete-patterns
 - -fno-warn-type-defaults
-# - -Wunused-matches
-# - -Wcompat
-# - -Widentities
-# - -Wincomplete-record-updates
-# - -Wmissing-export-lists
-# - -Wmissing-home-modules
-# - -Wpartial-fields
-# - -Wredundant-constraints
 
 library:
   source-dirs: src

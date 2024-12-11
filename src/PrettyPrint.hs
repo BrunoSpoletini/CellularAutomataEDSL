@@ -16,7 +16,6 @@ clearHistory [] = []
 clearHistory ((Restart e):cs) = [(Restart e)]
 clearHistory (c:cs) = c : clearHistory cs
 
-
 commToString :: String -> [(Env, [Comm])] -> [Comm] -> String
 commToString selName envsP [] = ""
 commToString selName envsP ((Restart e):cs) = do

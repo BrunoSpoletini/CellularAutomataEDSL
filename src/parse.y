@@ -14,7 +14,6 @@ import Data.Tuple
 %tokentype { Token }
 %lexer {lexer} {TEOF}
 
--- Limpiar tokens sin uso
 %token
     '='     { TEquals }
     '('     { TOpen }

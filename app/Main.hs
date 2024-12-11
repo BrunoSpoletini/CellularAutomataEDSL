@@ -43,10 +43,12 @@ compileFile file = do
 compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))
 compileFiles = do
     files <- drop 2 <$> getDirectoryContents "static/examples"
-    if filter ("default.txt" == ) files == [] then
+    let def = filter ("default.txt" == ) files
+    if def == [] then
         return $ Left DefaultFileNotFound
     else do
-        comp files where
+        let orderedFiles = def ++ (Data.List.delete "default.txt" files)
+        comp orderedFiles where
         comp :: [String] -> IO (Either Error ([(String, Env)], [[Comm]]))
         comp [] = return (Right ([], []))
         comp (f:fs) = do
