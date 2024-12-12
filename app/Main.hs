@@ -35,10 +35,9 @@ compileFile file = do
   x <- readFile file
   case stmts_parse x of
     Failed e -> return $ Left (ParsingError e)
-    Ok stmts -> let stmtsS = stmts  in
-                case runStateError (loadMonad stmtsS) initEnv of
+    Ok stmts -> case runStateError (loadMonad stmts) initEnv of
                     Left err -> return $ Left err
-                    Right (_ :!: s) -> return $ Right (s, stmtsS)
+                    Right (_ :!: s) -> return $ Right (s, stmts)
 
 -- Carga los archivos de la carpeta ejemplos o devuelve un error
 compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))

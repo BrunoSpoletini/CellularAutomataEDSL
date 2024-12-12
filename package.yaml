@@ -44,13 +44,13 @@ default-extensions:
 ghc-options:
 - -Wall
 - -Wno-unrecognised-pragmas
-- -Wnoncanonical-monad-instances
 - -fno-warn-unused-do-bind
 - -fno-warn-unused-matches
 - -fno-warn-name-shadowing
 - -fno-warn-incomplete-uni-patterns
 - -fno-warn-incomplete-patterns
 - -fno-warn-type-defaults
+- -fno-warn-noncanonical-monad-instances
 
 library:
   source-dirs: src

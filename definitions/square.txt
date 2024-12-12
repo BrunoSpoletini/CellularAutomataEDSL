@@ -1,3 +1,4 @@
 DEFCELL square = (RED, [1,2,3], [1,2,3,4,6])
 
 UPDATE (12,12) SQUARE
+STEP

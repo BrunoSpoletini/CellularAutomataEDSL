@@ -36,6 +36,7 @@ instance Applicative StateError where
   (<*>) = ap
 
 instance Monad StateError where
+  return x = StateError (\s -> Right (x :!: s))
   m >>= f = StateError (\s ->   let e = runStateError m s 
                                 in case e of
                                     (Left err) -> Left err
@@ -99,8 +100,8 @@ processComm (UpdatePos pos) = do    cellId <- checkGrid pos
 processComm Step = resolveStep
 
 processComm (Steps 0) = return () 
-processComm (Steps n) = do  resolveStep
-                            processComm (Steps (n-1))
+processComm (Steps n) = do  let stepMList = replicate n (processComm Step)
+                            foldr1 (>>) stepMList                 
 
 processComm (Restart env) = do  let cuadr = grid (fst env)
                                 setEnv env
@@ -111,7 +112,7 @@ processComm (Select ident) = do     cellData <- lookforCell ident
 
 loadMonad :: (MonadState m, MonadError m) => [Comm] -> m ()
 loadMonad [] = return ()
-loadMonad cs = do   foldr1 (>>) (map processComm (cs))
+loadMonad cs = do   foldr1 (>>) (map processComm cs)
                     env <- getEnv
                     let cellList = fst $ snd env
                     if length cellList < 2 then
