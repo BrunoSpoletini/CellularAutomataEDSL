@@ -52,6 +52,7 @@
 
 .ui.segment.console{
     width: 15rem;
+    user-select: none;
     min-height: 30px;
     max-height: 200px;
     overflow-y: scroll;

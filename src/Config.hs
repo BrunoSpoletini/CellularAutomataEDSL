@@ -13,7 +13,7 @@ canvasSize = 500
 
 -- Velocidad a la que se producen los steps
 speed :: Int
-speed = 250 -- [100 - 1000] ms
+speed = 400 -- [100 - 1000] ms
 
 -- Path del archivo de salida
 outFile :: String

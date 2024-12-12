@@ -86,12 +86,16 @@ checkCell pos env = case runStateError (checkGrid pos) env of
                       Right (cellId :!: env) -> show cellId
 
 processComm :: (MonadState m, MonadError m) => Comm -> m ()
-processComm (UpdateCell pos name) = do  cellData <- lookforCell (Var name)
-                                        updateGrid pos (cId cellData)                           
+processComm (UpdateCell pos name) = do  cellId <- checkGrid pos
+                                        cellData <- lookforCell (Var name)
+                                        if cId cellData == cellId then
+                                            updateGrid pos 0
+                                        else
+                                            updateGrid pos (cId cellData)                           
 processComm (DefCell name col xs ys) = addCell name col xs ys
 processComm (UpdatePos pos) = do    cellId <- checkGrid pos
                                     sel <- getSel
-                                    if cId sel == cellId then -- Deseleccionar
+                                    if cId sel == cellId then
                                         do  updateGrid pos 0
                                             storeChanges [pos]
                                     else 
