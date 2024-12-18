@@ -4,6 +4,8 @@
 
 CA-DSL is a domain-specific language (DSL) for creating and simulating cellular automata. This project provides a framework to define the rules and behaviors of cellular automata and visualize their evolution over time.
 
+![GUI preview](https://github.com/user-attachments/assets/555ceb11-60ff-4d83-8128-1fc8888669ad)
+
 ## Features
 
 - Define custom cellular automata rules
@@ -27,8 +29,8 @@ To run the CA-DSL simulator, use the following command:
 ```sh
 stack run
 ```
-
-You can define your own cellular automata rules in the `./definitions` directory and visualize them using the provided graphical interface.
+This will a compile the necessary files and start a local server with the GUI.
+You can define your own cellular automata rules in the `./definitions` directory and visualize them using the [provided graphical interface](http://127.0.0.1:8023/).
 
 ## Examples
 
