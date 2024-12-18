@@ -22,8 +22,7 @@ module Common where
         deriving (Show, Eq)
  
     data GridData = GridData {  grid :: Grid,
-                                changes :: [Pos]
-                                }
+                                changes :: [Pos] }
         deriving (Show, Eq)
 
     type Pos = (Int, Int)
@@ -33,7 +32,7 @@ module Common where
                 | UpdateCell Pos Variable
                 | Step 
                 | Steps Int
-                -- UI Commands
+                -- Comandos de la UI
                 | Restart Env
                 | Select Ident
                 | UpdatePos Pos

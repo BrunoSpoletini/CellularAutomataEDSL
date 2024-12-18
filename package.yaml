@@ -8,14 +8,12 @@ copyright:           "2024 Bruno Spoletini"
 
 extra-source-files:
 - README.md
+- src/parse.y
 
 # Metadata used when publishing your package
 # synopsis:            Cellular automata EDSL
 # category:            Web
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/BrunoSpoletini/CellularAutomataEDSL#readme>
 
 dependencies:
@@ -65,3 +63,5 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - CA-DSL
+    build-tools:
+    - happy

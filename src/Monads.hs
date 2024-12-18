@@ -29,7 +29,6 @@ class Monad m => MonadState m where
     -- Gets the selected cell
     getSel :: m CellData
 
-
 -- Class for representing monads that can throw errors
 class Monad m => MonadError m where
     -- Throws error

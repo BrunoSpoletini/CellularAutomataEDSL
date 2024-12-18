@@ -1,10 +1,10 @@
-\documentclass[a4paper,11pt]{article}
-
+\documentclass[fleqn,a4paper,11pt]{article}
+\usepackage{minted}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{xcolor}
-
+\usepackage{hyperref}
 \renewcommand\familydefault{\sfdefault}
 \usepackage{tgheros}
 
@@ -113,7 +113,7 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 	\vspace{1cm}
 	{\scshape\Large \MATERIA\par}
 	\vspace{1.5cm}
-	{\Huge\bfseries \TITULOTRABAJO\par}
+	{\Huge\bfseries EDSL \\ \TITULOTRABAJO\par}
 	\vspace{2cm}
 	{\Large\itshape \PARTICIPANTES \par}
 	\vspace{4cm}
@@ -132,109 +132,225 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 \maketitle
 
 
-
-
-
 \section{Introducción}
- (que hace, por que)
- \subsection{Qué es un autómata celular?}
-Un autómata celular (AC) es un modelo matemático y computacional para un sistema dinámico que evoluciona en pasos discretos. Este modelo consiste en una cuadrícula formada por ``Células'' que pueden cambiar de estado dependiendo de las leyes que evalúan los estados de las células vecinas.\\
-Los elementos básicos de un AC son:
-\begin{itemize}
-    \item Cuadrícula de células
-    \item Conjunto finito de estados que puede tomar cada célula
-    \item Vecindad de cada célula
-    \item Función de transición que se aplica a cada célula en cada paso discreto de tiempo.
-\end{itemize}
 
  \subsection{Descripción del proyecto}
-Este proyecto consiste en un DSL (Domain Specific Lenguaje) embebido en Haskell, el cual permite definir distintos tipos de células, ubicarlas en una cuardrícula, ejecutar funciones de transición y visualizar la simulación a través de una interfaz gráfica de usuario (GUI). \\
-\\
-\section{Manual de uso e instalación de software}
-Para utilizar el DSL de autómatas celulares, es necesario tener instalado Haskell y algunas bibliotecas adicionales. A continuación, se detallan los pasos para la instalación y uso del software.
+Este proyecto consiste en un DSL (Domain Specific Lenguaje) embebido en Haskell, el cual permite definir distintos tipos de células, ubicarlas en una cuardrícula, ejecutar una función de transición y visualizar la simulación a través de una interfaz gráfica de usuario (GUI). \\
+El proyecto se divide en dos etapas, la definición de los AC y la visualización de los mismos.
 
-\subsection{Instalación de Haskell}
-1. Descargue e instale la plataforma Haskell desde \url{https://www.haskell.org/platform/}.
-2. Siga las instrucciones de instalación específicas para su sistema operativo.
+    \subsubsection{Definición de Autómatas Celulares}
+    Cada Autómata Celular (AC) se define como un conjunto de Células, y un estado inicial que consiste en la ubicación de dichas células en una grilla, junto con una cantidad finita de pasos de transición. \\ 
+    Las células a su vez se definen con un nombre y un color que las identifique, junto con sus reglas de transición $[Birth]/[Survive]$. Estas reglas se basan en que una célula puede aparecer en la grilla en caso de que tenga $n$ celulas vecinas de su mismo tipo, con $n \in [Birth]$, y que cada célula se mantiene en la grilla solo si tiene $m$ células vecinas de su mismo tipo, con $m \in [Survive]$.\\
+    Para determinar que célula es vecina de otra se utilizó la \href{https://en.wikipedia.org/wiki/Moore_neighborhood}{Vecindad de Moore}, que consiste en las 8 células que la rodean.
+    
 
-\subsection{Ejecución del proyecto}
-1. Clone el repositorio del proyecto desde GitHub:
-\begin{verbatim}
-git clone https://github.com/usuario/proyecto-automatas-celulares.git
-\end{verbatim}
-2. Navegue al directorio del proyecto:
-\begin{verbatim}
-cd proyecto-automatas-celulares
-\end{verbatim}
-3. Compile y ejecute el proyecto:
-\begin{verbatim}
-cabal run
-\end{verbatim}
+    \subsubsection{Visualización}
+   Para mostrar la simulación a lo largo del tiempo se utilizó el framework \href{https://hackage.haskell.org/package/threepenny-gui}{Threepenny-gui}, el cual genera un servidor web que puede ser accedido a través de un navegador para visualizar la interfaz gráfica, en conjunto con FRP (Functional Reactive Programming) para permitir una interacción fluida con dicha interfaz. \\
+   La misma ofrece:
+   \begin{itemize}
+       \item Grilla interactiva
+       \item Selector de los AC definidos
+       \item Botonera para controlar los pasos de transición
+       \item Selector de Células para los AC multi-celulares
+       \item Posibilidad de exportar el estado del AC actual
+       \item Consola con el historial de comandos
+   \end{itemize}
+  
+     
+\section{Manual de uso e instalacion de software}
+    \subsection{Instalación}
+    Para utilizar el DSL de autómatas celulares, es necesario tener instalado \href{https://www.haskell.org/}{Haskell} y \href{https://docs.haskellstack.org/en/stable/}{Stack}.
+    Para instalar el proyecto se debe clonar el repositorio, acceder a la carpeta, e instalar las dependencias con stack:
+    
+    \begin{verbatim}
+    git clone https://github.com/BrunoSpoletini/CellularAutomataEDSL
+    cd CellularAutomataEDSL
+    stack build
+    \end{verbatim}
+    \vspace{-1cm}
+    
+    \subsection{Ejecución}
+    Para ejecutar el proyecto, situado en la carpeta del mismo, debe ejecutarse el comando:
+    \begin{verbatim}
+    stack run
+    \end{verbatim}
+    \vspace{-0.5cm}
+    
+    Esto realizará la compilación de todos los archivos que se encuentren en la carpeta ``/definitions'' e iniciará la GUI con dichos autómatas disponibles para ser visualizados.
+    
+    Para acceder a la interfaz se deberá ingresar por medio de un navegador web a la IP \href{http://127.0.0.1:8023}{127.0.0.1:8023}.
+    
 
-\section{Organización de los archivos}
-El proyecto está organizado en varios módulos y archivos para facilitar su mantenimiento y comprensión. A continuación, se describe la estructura del proyecto:
+
+    \subsection{Creación de Automatas Celulares}
+    Para definir un nuevo AC se deberá crear un archivo de texto en la carpeta ``/definitions'' siguiendo la gramática dada por (\ref{cap:Gramatica}). Cada autómata deberá tener al menos una célula, y a su vez, cada célula debe contar con un nombre único, un color válido (\ref{cap:Colores}) y un set de reglas de transición. 
+
+    Existen 4 comandos para interactuar con el estado del autómata en el archivo de definición:
+    \begin{itemize}
+        \item $DEFCELL\ cell_{name}\ =\ (cell_{color},\ [rule_{birth}],\ [rule_{survive}])$: define una célula cuyo nombre se usará para posicionarla en la grilla, su color se mostrará en la interfaz gráfica, y sus pasos de transición estarán dados por sus reglas de nacimiento y supervivencia.
+        \item $UPDATECELL\ (x,\ y)\ cell_{name}$: actualiza la posición $(x,\ y)$ de la grilla con la célula $cell_{name}$. En caso de que dicha célula ya se encuentre en esa posición, la elimina.
+        \item $STEP$: realiza un paso de transición
+        \item $STEPS\ n$: realiza n pasos de transición
+    \end{itemize}
+
+    \subsubsection{Ejemplo}
+        Para definir el autómata \href{https://es.wikipedia.org/wiki/Juego_de_la_vida}{Game of Life} con un oscilador como estado inicial, creamos un archivo ``/definitions/conway.txt'' que contenga:
+            \begin{verbatim}
+            DEFCELL conway = (Black, [3], [2,3])  
+            UPDATE (7,4) conway
+            UPDATE (7,5) conway
+            UPDATE (7,6) conway
+            \end{verbatim}
+        \vspace{-0.5cm}
+        Por defecto se visualizará el AC definido en ``default.txt''.
+    
+
+
+
+    \subsection{Gramática}\label{cap:Gramatica}
+    Gramática utilizada para formar las expresiones del archivo de definición:
+    
+    
+    
+    \begin{flalign*}
+        \textit{Comm} \quad ::= \quad & \textit{DefCell}  \\
+        & | \; \text{'UPDATE'} \; \textit{Position} \; \textit{Var} \\
+        & | \; \text{'STEP'} \\
+        & | \; \text{'STEPS'} \; \textit{Number}\\
+    \end{flalign*} 
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{DefCell} \quad & ::= \quad \text{'DEFCELL'} \; \textit{Var} \; \text{'='} \; \text{'('} \; 
+    \textit{Var} \; \text{','} \; \text{'['} \; \textit{NList} \; \text{']'} \; \text{','} \; \text{'['} \; 
+    \textit{NList} \; \text{']'} \; \text{')'} \\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{NList} \quad  ::= \quad & \textit{Number} \; \textit{NList} \\
+        & | \; \text{','} \; \textit{NList}\\
+        & | \; \epsilon \\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{Position} \quad ::= \quad & \text{'('} \; \text{Number} \; \text{','} \; \text{Number} \; \text{')'}\\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{Number} \quad ::= \quad & \textit{Digit} \\
+        & | \; \textit{Digit Number}\\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{Digit} \quad & ::= \quad \text{'0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }\\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{Var} \quad ::= \quad & \textit{Letter} \; | \; \textit{Letter Var} \\
+    \end{flalign*}
+    
+    \vspace{-1,5cm}
+    
+    \begin{flalign*}
+    \textit{Letter} \quad & ::= \quad \text{'A' | 'B' | ... | 'Z' }\\
+    \end{flalign*}
+
+
+
+
+
+\section{Organizacion de los archivos}
+El proyecto está organizado en varios módulos para facilitar su mantenimiento y comprensión. A continuación, se describe la estructura del proyecto:
 
 \begin{itemize}
-    \item \textbf{Main.hs}: Archivo principal que contiene el punto de entrada del programa.
-    \item \textbf{Automata.hs}: Define las estructuras de datos y funciones relacionadas con los autómatas celulares.
-    \item \textbf{Grid.hs}: Contiene las funciones para manipular la cuadrícula de células.
-    \item \textbf{GUI.hs}: Implementa la interfaz gráfica de usuario para visualizar la simulación.
-    \item \textbf{Utils.hs}: Funciones utilitarias que se utilizan en varios módulos del proyecto.
+    \item \textbf{Main.hs}: Se encarga de compilar los archivos de entrada, hacer el manejo de errores e iniciar la UI.
+    \item \textbf{Automata.hs}: Define las funciones de la mónada que lleva el estado del AC y sus operaciones correspondientes.
+    \item \textbf{BehaviourManager.hs}: Genera y gestiona los eventos de interacción con la UI.
+    \item \textbf{Common.hs}: Declara los tipos de datos que se usan a lo largo del proyecto
+    \item \textbf{Components.hs}: Genera los componentes de la UI.
+    \item \textbf{Config.hs}: Declara constantes usadas por la UI.
+    \item \textbf{Front.hs}: Genera la estructura de la UI y gestiona su actualización.
+    \item \textbf{Monads.hs}: Define las clases de las mónadas MonadState y MonadError
+    \item \textbf{parse.y}: Archivo generador del parser "parse.hs"
+    \item \textbf{PrettyPrint.hs}: Pretty printer encargado de mostrar los comandos por la consola de la UI.
 \end{itemize}
 
 \section{Decisiones de diseño}
-Durante el desarrollo del proyecto, se tomaron varias decisiones de diseño importantes para asegurar la flexibilidad y extensibilidad del DSL:
 
-\begin{itemize}
-    \item \textbf{Modularidad}: El proyecto se dividió en varios módulos para separar las responsabilidades y facilitar el mantenimiento del código.
-    \item \textbf{Interfaz gráfica de usuario (GUI)}: Se decidió utilizar la biblioteca Gloss para implementar la GUI debido a su simplicidad y facilidad de uso.
-    \item \textbf{Funciones de transición}: Las funciones de transición se definieron de manera que puedan ser fácilmente extendidas para soportar nuevos tipos de células y reglas de evolución.
-\end{itemize}
+    \subsection{Estructuras utilizadas}
+    El tipo de dato Comm es el que se realizan las interacciones con el entorno del AC, y se divide en dos partes:
+    \begin{itemize}
+        \item Comandos de entrada: los primeros cuatro comandos se utilizan para la definición del autómata según se explicó anteriormente.
+        \item Comandos de la UI: se ejecutan al interactuar con la UI, y se describen a continuación:
+            \begin{itemize}
+                \item Restart Env: Se ejecuta al elegir un autómata o al clickear en el boton Reset. Actualiza el estado de la monada con el enviroment del AC elegido.\\
+                Esto podria hacerse generando un nuevo autómata y re-compilando el archivo del AC elegido, pero este comando existe por cuestiones de eficiencia.
+                \item Select Ident: Se ejecuta al seleccionar una célula de la lista, y actualiza la célula elegida en el environment.
+                \item UpdatePos Pos: Se ejecuta al hacer click en el canvas. Este click mapea la posición en la cuál se clickeó con una célula de la grid, y actualiza su valor en el entorno según la célula que se encuentre seleccionada.
+            \end{itemize}
+    \end{itemize}
+        
+    \begin{minted}{haskell}
+    -- Comandos interactivos
+    data Comm =   DefCell Variable Variable [Int] [Int]
+                | UpdateCell Pos Variable
+                | Step 
+                | Steps Int
+                -- Comandos de la UI
+                | Restart Env
+                | Select Ident
+                | UpdatePos Pos
+    \end{minted}
+
+    El estado del autómata, a su vez, está compuesto por los datos de la grilla, un array con las células definidas, y la célula seleccionada por la UI.
+    \begin{minted}{haskell}
+        type Env = (GridData, ([CellData], CellData))
+    \end{minted}
+
+    Por último, los datos de la grilla se componen de la grilla en sí y un array que representa las posiciones de las células que fueron modificadas en la última actualización del entorno,
+    \begin{minted}{haskell}
+        data GridData = GridData {  grid :: Grid,
+                                    changes :: [Pos] }
+    \end{minted}
+
+
+    \subsection{Colores permitidos}\label{cap:Colores}
+Los colores que se usan para definir las células se leen como una String al pasar por el parser. Al momento de agregar dicha célula a la mónada de estado, se verifica si el color ingresado puede ser transformado en el tipo de dato color, definido como:
+\begin{minted}{haskell}
+    data Color = Black | Silver | Gray | Grey | White | Maroon | Red | Purple 
+    | Fuchsia | Green | Lime | Olive | Yellow | Navy | Blue | Teal | Aqua 
+    | Brown | AliceBlue
+\end{minted}
+Se decidió por esta forma de interpretar el color, ya que resulta más intuitivo que describirlo según sus valores RGB.
+
+    \subsection{Pretty Printer}
+La visualización del estado del AC en la UI consiste en la ejecución de los comandos de definición del autómata, combinados con los comandos ejecutados por la UI. Pero para poder exportar el estado actual a un archivo, los comandos de la UI deben ser ``traducidos'' a comandos de definición. Aquí entra en juego el Pretty Printer para realizar dicha traducción.\\
+La UI muestra una consola, que contiene los comandos necesarios para replicar el estado del AC que se muestra por pantalla en cada momento. Dichos comandos pueden exportarse a través de un boton a un archivo ``out.txt''.
 
 \section{Fuentes consultadas}
-Para el desarrollo de este proyecto, se consultaron las siguientes fuentes:
 
-\begin{itemize}
-    \item \url{https://es.wikipedia.org/wiki/Autómata_celular}
-    \item \url{https://www.haskell.org/}
-    \item \url{http://gloss.ouroborus.net/}
-\end{itemize}
+\url{https://wiki.haskell.org/index.php?title=Functional_Reactive_Programming}
 
+\url{https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life}
 
- 
-% \section{Manual de uso e instalacion de software}
+\url{https://en.wikipedia.org/wiki/Moore_neighborhood}
 
+\url{https://hackage.haskell.org/package/threepenny-gui-0.9.4.1/docs/Graphics-UI-Threepenny.html}
 
+\url{https://conwaylife.com/wiki/Polystate_Life}
 
+\url{https://github.com/thma/ThreepennyElectron/blob/master/README.md}
 
-
-
-% \section{Organizacion de los archivos}
-
-%  (modulos y archivos adicionales)
-
-
-
-
-
-
-% \section{Decisiones de diseño}
-
-% Decisiones de dise˜no importantes y cualquier otra
-% informaci´on que ayude a entender el c´odigo.
-
-
-
-
-
-
-% \section{Fuentes consultadas}
-
-% I Bibliograf´ıa, detalle de software de terceros (ya sean
-% bibliotecas, copy/paste, o simplemente cdigo que hayan
-% usado de inspiracin)
-
-% \url{https://es.wikipedia.org/wiki}\\
-
-% \end{document}
+\end{document}
 

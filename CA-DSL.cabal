@@ -17,6 +17,7 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+    src/parse.y
 
 source-repository head
   type: git
@@ -77,6 +78,8 @@ executable CA-DSL-exe
       TypeSynonymInstances
       FlexibleInstances
   ghc-options: -Wall -Wno-unrecognised-pragmas -fno-warn-unused-do-bind -fno-warn-unused-matches -fno-warn-name-shadowing -fno-warn-incomplete-uni-patterns -fno-warn-incomplete-patterns -fno-warn-type-defaults -fno-warn-noncanonical-monad-instances -threaded -rtsopts -with-rtsopts=-N
+  build-tools:
+      happy
   build-depends:
       CA-DSL
     , aeson
