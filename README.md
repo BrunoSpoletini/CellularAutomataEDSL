@@ -3,9 +3,8 @@
 ## Overview
 
 CA-DSL is a domain-specific language (DSL) for creating and simulating cellular automata. This project provides a framework to define the rules and behaviors of cellular automata and visualize their evolution over time.
-![GUI preview](https://github.com/user-attachments/assets/ec363d62-9018-4b9a-afd2-1a6a52e7cc48)
 
-
+![GUI preview](https://github.com/user-attachments/assets/555ceb11-60ff-4d83-8128-1fc8888669ad)
 
 ## Features
 
