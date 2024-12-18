@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -47,20 +47,11 @@ library
       FlexibleInstances
   ghc-options: -Wall -Wno-unrecognised-pragmas -fno-warn-unused-do-bind -fno-warn-unused-matches -fno-warn-name-shadowing -fno-warn-incomplete-uni-patterns -fno-warn-incomplete-patterns -fno-warn-type-defaults -fno-warn-noncanonical-monad-instances
   build-depends:
-      aeson
-    , array
+      array
     , base
-    , colour
-    , containers
     , directory
-    , exceptions
-    , haskeline
-    , mtl
-    , parallel
-    , pretty
     , strict
     , threepenny-gui
-    , transformers
     , vector
   default-language: Haskell2010
 
@@ -82,19 +73,10 @@ executable CA-DSL-exe
       happy
   build-depends:
       CA-DSL
-    , aeson
     , array
     , base
-    , colour
-    , containers
     , directory
-    , exceptions
-    , haskeline
-    , mtl
-    , parallel
-    , pretty
     , strict
     , threepenny-gui
-    , transformers
     , vector
   default-language: Haskell2010

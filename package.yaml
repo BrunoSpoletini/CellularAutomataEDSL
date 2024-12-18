@@ -19,18 +19,9 @@ description:         Please see the README on GitHub at <https://github.com/Brun
 dependencies:
 - base # >= 4.7 && < 5
 - threepenny-gui
-- colour
-- containers
 - vector
 - strict
 - array
-- pretty
-- haskeline
-- exceptions
-- mtl
-- parallel
-- transformers
-- aeson
 - directory
 
 default-extensions:
