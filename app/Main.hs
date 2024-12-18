@@ -42,7 +42,7 @@ compileFile file = do
 -- Carga los archivos de la carpeta ejemplos o devuelve un error
 compileFiles :: IO (Either Error ([(String, Env)], [[Comm]]))
 compileFiles = do
-    files <- drop 2 <$> getDirectoryContents definitionsPath
+    files <- filter (\f -> f /= "." && f /= "..") <$> getDirectoryContents definitionsPath
     let def = filter ("default.txt" == ) files
     if def == [] then
         return $ Left DefaultFileNotFound
